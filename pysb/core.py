@@ -258,11 +258,11 @@ class MonomerPattern(object):
                 continue
             invalid_sites.append(site)
         if invalid_sites:
-            raise Exception("Invalid state value for sites: " + '; '.join(['%s=%s' % (s,str(site_conditions[s])) for s in invalid_sites]))
+            raise ValueError("Invalid state value for sites: " + '; '.join(['%s=%s' % (s,str(site_conditions[s])) for s in invalid_sites]))
 
         # ensure compartment is a Compartment
         if compartment and not isinstance(compartment, Compartment):
-            raise Exception("compartment is not a Compartment object")
+            raise TypeError("compartment is not a Compartment object")
 
         self.monomer = monomer
         self.site_conditions = site_conditions
@@ -365,7 +365,7 @@ class ComplexPattern(object):
     def __init__(self, monomer_patterns, compartment, match_once=False):
         # ensure compartment is a Compartment
         if compartment and not isinstance(compartment, Compartment):
-            raise Exception("compartment is not a Compartment object")
+            raise TypeError("compartment is not a Compartment object")
 
         self.monomer_patterns = monomer_patterns
         self.compartment = compartment
@@ -586,12 +586,10 @@ class Parameter(Component):
     def __repr__(self):
         return  '%s(name=%s, value=%s)' % (self.__class__.__name__, repr(self.name), repr(self.value))
 
-
-
 class Compartment(Component):
     """Model component representing a bounded reaction volume."""
 
-    def __init__(self, name, parent=None, dimension=3, size=None, _export=True):
+    def __init__(self, name, parent=None, dimension=3, size=None, _export=True, geometry=None):
         """
         Requires name, accepts optional parent, dimension and size. name is a
         string. parent should be the parent compartment, except for the root
@@ -616,6 +614,10 @@ class Compartment(Component):
         self.parent = parent
         self.dimension = dimension
         self.size = size
+        self.geometry = geometry
+        
+        if(geometry != None):
+            self.dimension = geometry.shape.dimension
 
     def __repr__(self):
         return  '%s(name=%s, parent=%s, dimension=%s, size=%s)' % \

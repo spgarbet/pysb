@@ -20,6 +20,7 @@ PySB depends on the following:
   * sympy
   * Perl - http://www.perl.org/get.html
   * BioNetGen - http://bionetgen.org/
+  * Sphinx build
 
 For full instructions, see the Installation chapter of the manual.
 

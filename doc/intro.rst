@@ -2,7 +2,7 @@ Introduction to modeling
 ========================
 
 The premise to all modeling is that, based on experimental
-observations, we believe that a set of rules gobvern the behavior of a
+observations, we believe that a set of rules govern the behavior of a
 system. Modeling the behavior of such a system involves the
 *elucidation* of the rules that govern the system to understand our
 observations and the *use* of such rules to further predict the
@@ -23,7 +23,7 @@ we aim to develop models that describe the behavior of cellular
 systems. The model can guide us to understand what are our gaps in the
 observations that prevent us from generalizing a theory and, when they
 capture the key significant aspects of the behavior of a system,
-predict the outcome of the behavrio of a system under a given set of
+predict the outcome of the behavior of a system under a given set of
 conditions. 
 
 PySB as modeling tool
@@ -41,8 +41,8 @@ abstraction, encapsulation, modularity, message-passing, polymorphism,
 and inheritance to name a few. In addition to these technical
 advantages, we chose Python due to its readable and clear syntax. In
 our view, one of the most difficult issues with current biological
-modeling is shareability and transparency, both of which are
-addresssed, at least in part, by a clear syntax and a programmatic
+modeling is share-ability and transparency, both of which are
+addressed, at least in part, by a clear syntax and a programmatic
 flow of ideas. PySB can handle simple models, modular models, and
 multiple instances of models, as shown in the tutorial. We invite
 users to contribute and share their innovations and ideas to make PySB
