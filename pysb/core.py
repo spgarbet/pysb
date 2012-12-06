@@ -394,8 +394,8 @@ class ComplexPattern(object):
         if not isinstance(other, ComplexPattern):
             raise Exception("Can only compare ComplexPattern to another ComplexPattern")
         return \
-            sorted((mp.monomer, mp.site_conditions) for mp in self.monomer_patterns) == \
-            sorted((mp.monomer, mp.site_conditions) for mp in other.monomer_patterns)
+            sorted((mp.monomer, mp.site_conditions, mp.compartment) for mp in self.monomer_patterns) == \
+            sorted((mp.monomer, mp.site_conditions, mp.compartment) for mp in other.monomer_patterns)
 
     def copy(self):
         """
@@ -589,7 +589,7 @@ class Parameter(Component):
 class Compartment(Component):
     """Model component representing a bounded reaction volume."""
 
-    def __init__(self, name, parent=None, dimension=3, size=None, _export=True, geometry=None):
+    def __init__(self, name, parent=None, dimension=3, size=None, _export=True, geometry=None, action=None):
         """
         Requires name, accepts optional parent, dimension and size. name is a
         string. parent should be the parent compartment, except for the root
@@ -611,10 +611,11 @@ class Compartment(Component):
         if size is not None and not isinstance(size, Parameter):
             raise Exception("size must be a parameter (or omitted)")
 
-        self.parent = parent
+        self.parent    = parent
         self.dimension = dimension
-        self.size = size
-        self.geometry = geometry
+        self.size      = size
+        self.geometry  = geometry
+        self.action    = action
         
         if(geometry != None):
             self.dimension = geometry.shape.dimension
@@ -624,12 +625,11 @@ class Compartment(Component):
             (self.__class__.__name__, repr(self.name), repr(self.parent), repr(self.dimension), repr(self.size))
 
 
-
 class Rule(Component):
 
     def __init__(self, name, rule_expression, rate_forward, rate_reverse=None,
                  delete_molecules=False, move_connected=False,
-                 _export=True):
+                 _export=True, compartment=None):
         Component.__init__(self, name, _export)
         if not isinstance(rule_expression, RuleExpression):
             raise Exception("rule_expression is not a RuleExpression object")
@@ -644,6 +644,7 @@ class Rule(Component):
         self.rate_reverse = rate_reverse
         self.delete_molecules = delete_molecules
         self.move_connected = move_connected
+        self.compartment = compartment
         # TODO: ensure all numbered sites are referenced exactly twice within each of reactants and products
 
     def is_synth(self):
