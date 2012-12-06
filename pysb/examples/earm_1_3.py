@@ -1,5 +1,4 @@
-"""
-EARM 1.3 (extrinsic apoptosis reaction model)
+"""EARM 1.3 (extrinsic apoptosis reaction model)
 
 Gaudet S, Spencer SL, Chen WW, Sorger PK (2012) Exploring the Contextual
 Sensitivity of Factors that Determine Cell-to-Cell Variability in
@@ -21,6 +20,8 @@ import pysb.examples.earm_1_0
 # Start from EARM 1.0 as a base
 # ==========
 Model(base=pysb.examples.earm_1_0.model)
+Annotation(model, 'isDescribedBy',
+           'http://identifiers.org/doi/10.1371/journal.pcbi.1002482')
 
 # Rename all instances of Bcl2c to Mcl1, which was determined as a more accurate
 # description of that monomer based on its role in the model
@@ -57,6 +58,8 @@ Bcl2_0.value = 30000
 # Change some rate constants
 # ==========
 
+v = 0.01
+
 kr1.value = 1e-6
 kc1.value = 1e-2
 kf3.value = 1e-7
@@ -65,14 +68,14 @@ kf7.value = 1e-7
 kr9.value = 0.001
 kc9.value = 20
 kr13.value = 1
-kf14.value = 1e-6
-kf15.value = 1e-6
-kf16.value = 1e-6
-kf17.value = 1e-6
-kf18.value = 1e-6
-kf19.value = 1e-6
-kf20.value = 2e-6
-kf21.value = 2e-6
+kf14.value = 1e-6 / v
+kf15.value = 1e-6 * 2 / v
+kf16.value = 1e-6 / v
+kf17.value = 1e-6 * 2 / v
+kf18.value = 1e-6 / v
+kf19.value = 1e-6 / v
+kf20.value = 2e-6 / v
+kf21.value = 2e-6 / v
 kf22.value = 1
 kf26.value = 1
 
@@ -84,19 +87,13 @@ pysb.bng.generate_equations(model)
 all_species = list(model.species)
 model.reset_equations()
 
-# add some components for use in synthesis and degradation rules
-Monomer('_SynthesisDummy')
-Monomer('_Trash')
-Parameter('_SynthesisDummy_0', 1.0)
-Initial(_SynthesisDummy(), _SynthesisDummy_0)
-
 def synthesize(name, species, ks):
     """Synthesize species with rate ks"""
-    Rule(name, _SynthesisDummy() >> species, ks)
+    Rule(name, None >> species, ks)
 
 def degrade(name, species, kdeg):
     """Degrade species with rate kdeg"""
-    Rule(name, species >> _Trash(), kdeg)
+    Rule(name, species >> None, kdeg)
 
 # almost all degradation rates use this one value
 kdeg_generic = 2.9e-6
@@ -148,6 +145,9 @@ for species in all_species:
 
 def show_species():
     """Print a table of species like Table S2"""
+    print '   | %-12s %8s %20s %10s' \
+        % ('species', 'initial', 'synth rate', 'deg rate')
+    print '-' * (5 + 12 + 1 + 8 + 1 + 20 + 1 + 10)
     for i, species in enumerate(all_species, 1):
         mp_names = [mp.monomer.name for mp in species.monomer_patterns]
         name = '_'.join(mp_names)
@@ -169,8 +169,9 @@ def show_species():
 
 def show_rates():
     """Print a table of rate parameters like Table S4"""
+    # FIXME kf14-kf21 need to be un-scaled by v to make the table look right
     print ("%-20s        " * 3) % ('forward', 'reverse', 'catalytic')
-    print '-' * (9 + 17 + 8) * 3
+    print '-' * (9 + 11 + 7) * 3
     for i in range(1,29) + [31]:
         for t in ('f', 'r', 'c'):
             n = 'k%s%d' % (t,i)
@@ -178,3 +179,25 @@ def show_rates():
             if p is not None:
                 print "%-9s%11g       " % (p.name, p.value),
         print
+
+
+if __name__ == '__main__':
+    print __doc__, "\n", model
+    print "\n"
+    print "Initial species concentrations and synthesis/degradation rates\n" \
+        "==========\n" \
+        "(compare to supporting text S3, table S2 from Gaudet et al., " \
+        "however note that\nthe numbering and ordering is different)\n" 
+    show_species()
+    print "\n"
+
+    print "Kinetic rate parameters\n" \
+        "==========\n" \
+        "(compare to supporting text S3, table S4 from Gaudet et al., " \
+        "however note that\nkf14-kf21 are off by a factor of 'v' (%g) as " \
+        "this volume scaling factor has\nbeen moved from the ODEs to the " \
+        "rate values in this implementation)\n" % v
+    show_rates()
+    print "\n\nNOTE: This model code is designed to be imported and programatically " \
+        "manipulated,\nnot executed directly. The above output is merely a " \
+        "diagnostic aid."

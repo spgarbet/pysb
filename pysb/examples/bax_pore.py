@@ -1,15 +1,19 @@
-from pysb import *
+"""A version of BAX pore assembly where the subunits dimerize and then
+tetramerize instead of assembling sequentially (contrast with
+bax_pore_sequential.py). Inhibition of pore formation by Mcl-1 is also
+implemented.
+"""
 
-# Demonstration of the proper representation of BAX-style tetramers,
-# where the subunits dimerize and then tetramerize instead of
-# assembling sequentially.
+from pysb import *
 
 Model()
 
 # Each BAX-BAX bond must always involve a t1 site on one monomer and a
 # t2 site on the other.
 Monomer('BAX', ['t1', 't2', 'inh'])
+Annotation(BAX, 'http://identifiers.org/uniprot/Q07812')
 Monomer('MCL1', ['b'])
+Annotation(MCL1, 'http://identifiers.org/uniprot/Q07820')
 
 # Two lone monomers form a dimer.
 Parameter('kdimf', 1e-6)
@@ -36,10 +40,13 @@ Rule('bax_inh_mcl1',
      kbaxmcl1f, kbaxmcl1r)
 
 # Initial conditions
-Parameter('BAX_0', 1e3)
+Parameter('BAX_0', 8e4)
 Initial(BAX(t1=None, t2=None, inh=None), BAX_0)
-Parameter('MCL1_0', 1e2)
+Parameter('MCL1_0', 2e4)
 Initial(MCL1(b=None), MCL1_0)
+for p in BAX_0, MCL1_0:
+    Annotation(p, 'http://identifiers.org/doi/10.1371/journal.pcbi.1002482',
+               'isDescribedBy')
 
 # We must fully specify all four BAX-BAX bonds, otherwise the pattern
 # is too loose, match a given species multiple times (beyond the
@@ -54,11 +61,8 @@ Observable('BAX4_inh', BAX(inh=ANY, t1=1, t2=3) % BAX(t1=4, t2=1) % BAX(t1=2, t2
 
 
 if __name__ == '__main__':
-    from pysb.generator.bng import BngGenerator
-    gen = BngGenerator(model)
-    print gen.get_content()
-    print ""
-    print "begin actions"
-    print "  generate_network({overwrite=>1});"
-    print "  simulate_ode({t_end=>21600,n_steps=>360});" # 6 hours, 1-minute steps
-    print "end actions"
+    print __doc__, "\n", model
+    print "\nNOTE: This model code is designed to be imported and programatically " \
+        "manipulated,\nnot executed directly. The above output is merely a " \
+        "diagnostic aid. Please see\n" \
+        "run_bax_pore.py for example usage."

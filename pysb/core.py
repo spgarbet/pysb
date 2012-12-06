@@ -86,6 +86,8 @@ class SelfExporter(object):
     @staticmethod
     def cleanup():
         # delete previously exported symbols
+        if SelfExporter.default_model is None:
+            return
         for name in [c.name for c in SelfExporter.default_model.all_components()] + ['model']:
             if name in SelfExporter.target_globals:
                 del SelfExporter.target_globals[name]
@@ -240,7 +242,8 @@ class MonomerPattern(object):
         if unknown_sites:
             raise Exception("MonomerPattern with unknown sites in " + str(monomer) + ": " + str(unknown_sites))
 
-        # ensure each value is one of: None, integer, list of integers, string, (string,integer), (string,WILD), ANY
+        # ensure each value is one of: None, integer, list of integers, string,
+        # (string,integer), (string,WILD), ANY, WILD
         invalid_sites = []
         for (site, state) in site_conditions.items():
             # pass through to next iteration if state type is ok
@@ -254,7 +257,9 @@ class MonomerPattern(object):
                 continue
             elif type(state) == tuple and type(state[0]) == str and (type(state[1]) == int or state[1] == WILD):
                 continue
-            elif state == ANY:
+            elif state is ANY:
+                continue
+            elif state is WILD:
                 continue
             invalid_sites.append(site)
         if invalid_sites:
@@ -712,6 +717,7 @@ class Model(object):
         self.reactions = []
         self.reactions_bidirectional = []
         self.initial_conditions = []
+        self.annotations = []
         if self._export:
             SelfExporter.export(self)
         if self.base is not None:
@@ -801,6 +807,18 @@ class Model(object):
         else:
             raise Exception("Tried to add component of unknown type '%s' to"
                             "model" % type(other))
+
+    def add_annotation(self, annotation):
+        """Add an Annotation object to the model"""
+        self.annotations.append(annotation)
+
+    def get_annotations(self, subject):
+        """Return all annotations for the given subject"""
+        annotations = []
+        for a in self.annotations:
+            if a.subject is subject:
+                annotations.append(a)
+        return annotations
 
     def _rename_component(self, component, new_name):
         for cset in self.all_component_sets():
@@ -994,7 +1012,7 @@ class ComponentSet(collections.Set, collections.Mapping, collections.Sequence):
         # Must support both Sequence and Mapping behavior. This means stringified integer Mapping
         # keys (like "0") are forbidden, but since all Component names must be valid Python
         # identifiers, integers are ruled out anyway.
-        if isinstance(key, int) or isinstance(key, long):
+        if isinstance(key, (int, long, slice)):
             return self._elements[key]
         else:
             return self._map[key]
