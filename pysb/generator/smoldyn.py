@@ -164,22 +164,19 @@ class SmoldynGenerator(object):
                 arrow = '<->'
             else:
                 arrow = '->'
-            
-            #import code
-            #code.interact(local=locals())
-            
+
             if len(products_code)==0:
                 products_code = '0'
-            
+
             if len(reactants_code)==0:
                 reactants_code = '0'
-            
+
             self.__content += ("%s %s %s %s %s %s\n") % \
                 (reaction, label, reactants_code, arrow, products_code, r.rate_forward.value)
         self.__content += "\n"
 
-    def format_complexpatternrule(self, cp):
-        return '.'.join([self.format_monomerpattern(mp) for mp in cp.monomer_patterns])
+    def format_complexpatternrule(self, cp, default=''):
+        return '.'.join([self.format_monomerpattern(mp,default) for mp in cp.monomer_patterns])
 
     def format_monomer_site(self, monomer, site):
         ret = site
@@ -189,9 +186,16 @@ class SmoldynGenerator(object):
         return ret
 
     def format_reactionpattern(self, rp):
-        return ' + '.join([self.format_complexpatternrule(cp) for cp in rp.complex_patterns])
+        #import code
+        #code.interact(local=locals())
+        site_count = sum(sum(map(lambda x: map(lambda y: len(y.site_conditions),x.monomer_patterns), rp.complex_patterns), []))
+        if site_count > 0: 
+            default = 'bsoln'
+        else:
+            default = ''
+        return ' + '.join([self.format_complexpatternrule(cp,default) for cp in rp.complex_patterns])
 
-    def format_monomerpattern(self, mp):
+    def format_monomerpattern(self, mp, default=''):
         # sort sites in the same order given in the original Monomer
         site_conditions = sorted(mp.site_conditions.items(),
                                  key=lambda x: mp.monomer.sites.index(x[0]))
@@ -200,7 +204,7 @@ class SmoldynGenerator(object):
         if len(site_pattern_code)!=0:
             ret += '(%s)' % site_pattern_code
         else:
-            ret += '(bsoln)'
+            ret += '(%s)' % default
         #if mp.compartment is not None:
         #    ret = '%s@%s' % (ret, mp.compartment.name)
         return ret
