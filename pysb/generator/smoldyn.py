@@ -203,7 +203,7 @@ class SmoldynGenerator(object):
         ret = mp.monomer.name
         if len(site_pattern_code)!=0:
             ret += '(%s)' % site_pattern_code
-        else:
+        elif len(default) > 0:
             ret += '(%s)' % default
         #if mp.compartment is not None:
         #    ret = '%s@%s' % (ret, mp.compartment.name)
