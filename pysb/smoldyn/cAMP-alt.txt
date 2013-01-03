@@ -1,0 +1,154 @@
+# Modeling oscillations and waves of cAMP in Dictyostelium discoideum cells
+# Scheme 1-alpha
+
+graphics opengl
+
+dim 2
+species ACA ATP cAMP cAR1 pcAR1
+
+difc ACA(all)   1
+difc ATP(all)   1
+difc cAMP(all)  2
+difc cAR1(all)  1
+difc pcAR1(all) 1
+
+color ACA(all)       black
+
+color ATP           cyan
+color cAMP          red
+color cAR1(up)      orange
+color pcAR1(all)    green
+
+display_size all 3
+
+time_start 0
+time_stop 250
+time_step 0.01
+
+boundaries 0 -50 50 r
+boundaries 1 -50 50 r
+frame_thickness 1
+
+# Cell (1)
+start_surface cellwall1
+action ATP both reflect
+panel sph -20 20 10 20 20
+thickness 1
+color both grey 0.5
+end_surface
+
+start_compartment inside1
+surface cellwall1
+point -20 20
+end_compartment
+
+# Cell (2)
+start_surface cellwall2
+action ATP both reflect
+panel sph 20 20 10 20 20
+thickness 1
+color both grey 0.5
+end_surface
+
+start_compartment inside2
+surface cellwall2
+point 20 20
+end_compartment
+
+# Cell (3)
+start_surface cellwall3
+action ATP both reflect
+panel sph 20 -20 10 20 20
+thickness 1
+color both grey 0.5
+end_surface
+
+start_compartment inside3
+surface cellwall3
+point 20 -20
+end_compartment
+
+# Cell (4)
+start_surface cellwall4
+action ATP both reflect
+panel sph -20 -20 10 20 20
+thickness 1
+color both grey 0.5
+end_surface
+
+start_compartment inside4
+surface cellwall4
+point -20 -20
+end_compartment
+
+# Cell (5)
+start_surface cellwall5
+action ATP both reflect
+panel sph 0 0 10 20 20
+thickness 1
+color both grey 0.5
+end_surface
+
+start_compartment inside5
+surface cellwall5
+point 0 0
+end_compartment
+
+# Initial complex to create cAMP
+surface_mol 30 ACA(down)   cellwall1 all all
+surface_mol 30 ACA(down)   cellwall2 all all
+surface_mol 30 ACA(down)   cellwall3 all all
+surface_mol 30 ACA(down)   cellwall4 all all
+surface_mol 30 ACA(down)   cellwall5 all all
+
+# Receptor on outside of surface
+surface_mol 30 cAR1(up)   cellwall1 all all
+surface_mol 30 cAR1(up)   cellwall2 all all
+surface_mol 30 cAR1(up)   cellwall3 all all
+surface_mol 30 cAR1(up)   cellwall4 all all
+surface_mol 30 cAR1(up)   cellwall5 all all
+
+#mol 100 cAMP u u
+
+# Energy production by cell
+reaction_cmpt inside1 r1a    0 -> ATP   0.02
+reaction_cmpt inside2 r1b    0 -> ATP   0.02
+reaction_cmpt inside3 r1c    0 -> ATP   0.02
+reaction_cmpt inside4 r1d    0 -> ATP   0.02
+reaction_cmpt inside5 r1e    0 -> ATP   0.02
+
+# Energy converted to cAMP by ACA
+reaction r2  ACA(down) + ATP(bsoln) -> cAMP(bsoln) + ACA(down)  2.3
+
+#reaction_surface cellwall1  r2a  ACA(down) + ATP(bsoln) -> cAMP(bsoln) + ACA(down)  2.3
+#reaction_surface cellwall2  r2b  ACA(down) + ATP(bsoln) -> cAMP(bsoln) + ACA(down)  2.3
+#reaction_surface cellwall3  r2c  ACA(down) + ATP(bsoln) -> cAMP(bsoln) + ACA(down)  2.3
+#reaction_surface cellwall4  r2d  ACA(down) + ATP(bsoln) -> cAMP(bsoln) + ACA(down)  2.3
+#reaction_surface cellwall5  r2e  ACA(down) + ATP(bsoln) -> cAMP(bsoln) + ACA(down)  2.3
+
+# cAMP decay
+reaction r3 cAMP -> 0 0.03
+
+# phosphorylation of cAR1 
+reaction r4  cAR1(up) + cAMP(bsoln) -> pcAR1(up) + cAMP(bsoln)  2.3
+#reaction_surface cellwall1  r4a  cAR1(up) + cAMP(bsoln) -> pcAR1(up) + cAMP(bsoln)  2.3
+#reaction_surface cellwall2  r4b  cAR1(up) + cAMP(bsoln) -> pcAR1(up) + cAMP(bsoln)  2.3
+#reaction_surface cellwall3  r4c  cAR1(up) + cAMP(bsoln) -> pcAR1(up) + cAMP(bsoln)  2.3
+#reaction_surface cellwall4  r4d  cAR1(up) + cAMP(bsoln) -> pcAR1(up) + cAMP(bsoln)  2.3
+#reaction_surface cellwall5  r4e  cAR1(up) + cAMP(bsoln) -> pcAR1(up) + cAMP(bsoln)  2.3
+
+# dephosphorylation of active state
+reaction r5 pcAR1(up) -> cAR1(up) 0.2
+
+# decay of productive ACA
+reaction r6 ACA(down) -> ACA(up) 0.2
+
+# Making ACA productive
+reaction  r7a  ACA(up) + pcAR1(up) -> pcAR1(up) + ACA(down) 20 
+#reaction_surface cellwall1  r7a  ACA(up) + pcAR1(up) -> pcAR1(up) + ACA(down) 20 
+#reaction_surface cellwall2  r7b  ACA(up) + pcAR1(up) -> pcAR1(up) + ACA(down) 20 
+#reaction_surface cellwall3  r7c  ACA(up) + pcAR1(up) -> pcAR1(up) + ACA(down) 20 
+#reaction_surface cellwall4  r7d  ACA(up) + pcAR1(up) -> pcAR1(up) + ACA(down) 20 
+#reaction_surface cellwall5  r7e  ACA(up) + pcAR1(up) -> pcAR1(up) + ACA(down) 20 
+
+end_file

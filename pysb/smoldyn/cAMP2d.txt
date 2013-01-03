@@ -1,0 +1,208 @@
+# A molecular network underlying spontaneous cAMP oscillation and synchronization in Dictyostelium
+# Shunsuke Sakurai, Seido Nagano, Journal of Theoretical Biology, 307 (2012) 37-41
+# Scheme 1-alpha
+
+graphics opengl
+
+dim 2
+species ACA PKA ERK2 RegA cAMP cAR1A cAR1D
+
+#difc ACA    1
+#difc PKA    1
+#difc ERK2   1
+#difc RegA   1
+#difc cAMP   1
+#difc cAR1A  1
+#difc cAR1D  1
+
+difc all 1
+
+
+color ACA    grey
+color PKA    black
+color ERK2   green
+color RegA   orange
+color cAMP   red
+color cAR1A  blue
+color cAR1D  cyan
+
+display_size all 3
+
+time_start 0
+time_stop 100
+time_step 0.01
+
+boundaries 0 -50 50 r
+boundaries 1 -50 50 r
+frame_thickness 1
+
+# Cell (1)
+start_surface cellwall1
+action ACA both reflect
+action PKA both reflect
+action ERK2 both reflect
+action RegA both reflect
+action cAMP both transmit
+panel sph -20 20 10 20 20
+thickness 1
+color both grey 0.5
+end_surface
+
+start_compartment inside1
+surface cellwall1
+point -20 20
+end_compartment
+
+# Cell (2)
+start_surface cellwall2
+action ACA both reflect
+action PKA both reflect
+action ERK2 both reflect
+action RegA both reflect
+action cAMP both transmit
+panel sph 20 20 10 20 20
+thickness 1
+color both grey 0.5
+end_surface
+
+start_compartment inside2
+surface cellwall2
+point 20 20
+end_compartment
+
+# Cell (3)
+start_surface cellwall3
+action ACA both reflect
+action PKA both reflect
+action ERK2 both reflect
+action RegA both reflect
+action cAMP both transmit
+panel sph 20 -20 10 20 20
+thickness 1
+color both grey 0.5
+end_surface
+
+start_compartment inside3
+surface cellwall3
+point 20 -20
+end_compartment
+
+# Cell (4)
+start_surface cellwall4
+action ACA both reflect
+action PKA both reflect
+action ERK2 both reflect
+action RegA both reflect
+action cAMP both transmit
+panel sph -20 -20 10 20 20
+thickness 1
+color both grey 0.5
+end_surface
+
+start_compartment inside4
+surface cellwall4
+point -20 -20
+end_compartment
+
+# Cell (5)
+start_surface cellwall5
+action ACA both reflect
+action PKA both reflect
+action ERK2 both reflect
+action RegA both reflect
+action cAMP both transmit
+panel sph 0 0 10 20 20
+thickness 1
+color both grey 0.5
+end_surface
+
+start_compartment inside5
+surface cellwall5
+point 0 0
+end_compartment
+
+
+reaction_surface cellwall1  r1aa  cAR1A(front)         -> ACA(back) + cAR1A(front)  2.3
+reaction_surface cellwall2  r1ab  cAR1A(front)         -> ACA(back) + cAR1A(front)  2.3
+reaction_surface cellwall3  r1ac  cAR1A(front)         -> ACA(back) + cAR1A(front)  2.3
+reaction_surface cellwall4  r1ad  cAR1A(front)         -> ACA(back) + cAR1A(front)  2.3
+reaction_surface cellwall5  r1ae  cAR1A(front)         -> ACA(back) + cAR1A(front)  2.3
+
+
+reaction r2   PKA + ACA     -> PKA          0.3 
+
+reaction_cmpt inside1 r3    cAMP          -> PKA + cAMP   0.6
+reaction_cmpt inside2 r3b   cAMP          -> PKA + cAMP   0.6
+reaction_cmpt inside3 r3c   cAMP          -> PKA + cAMP   0.6
+reaction_cmpt inside4 r3d   cAMP          -> PKA + cAMP   0.6
+reaction_cmpt inside5 r3e   cAMP          -> PKA + cAMP   0.6
+
+
+reaction r4   PKA           -> 0            0.6
+reaction r5   cAR1A         -> ERK2 + cAR1A 0.6
+reaction r6   PKA + ERK2    -> PKA          1.1
+
+reaction_cmpt inside1 r7    0 -> RegA         0.0003 # Note: Had to slow this production waaaay down
+reaction_cmpt inside2 r7b   0 -> RegA         0.0003 # Note: Had to slow this production waaaay down
+reaction_cmpt inside3 r7c   0 -> RegA         0.0003 # Note: Had to slow this production waaaay down
+reaction_cmpt inside4 r7d   0 -> RegA         0.0003 # Note: Had to slow this production waaaay down
+reaction_cmpt inside5 r7e   0 -> RegA         0.0003 # Note: Had to slow this production waaaay down
+
+
+reaction r8   ERK2 + RegA   -> ERK2         2.9
+reaction r9   ACA           -> cAMP + ACA   0.4
+reaction r10  RegA + cAMP   -> RegA         1.1
+# r11 is about boundary transition
+reaction r12  cAMP          -> 0             2.3
+
+# r13 is the receptor function 
+reaction_surface cellwall1  r13aa  cAMP         -> cAMP + cAR1A 2.3
+reaction_surface cellwall2  r13ab  cAMP         -> cAMP + cAR1A 2.3
+reaction_surface cellwall3  r13ac  cAMP         -> cAMP + cAR1A 2.3
+reaction_surface cellwall4  r13ad  cAMP         -> cAMP + cAR1A 2.3
+reaction_surface cellwall5  r13ae  cAMP         -> cAMP + cAR1A 2.3
+
+# ??? Hill function, alpha = 20
+reaction_surface cellwall1 r13a cAR1A        -> cAR1D        2.0
+reaction_surface cellwall1 r13b cAR1D        -> cAR1A        0.5
+reaction_surface cellwall2 r13c cAR1A        -> cAR1D        2.0
+reaction_surface cellwall2 r13d cAR1D        -> cAR1A        0.5
+reaction_surface cellwall3 r13e cAR1A        -> cAR1D        2.0
+reaction_surface cellwall3 r13f cAR1D        -> cAR1A        0.5
+reaction_surface cellwall4 r13g cAR1A        -> cAR1D        2.0
+reaction_surface cellwall4 r13h cAR1D        -> cAR1A        0.5
+reaction_surface cellwall5 r13i cAR1A        -> cAR1D        2.0
+reaction_surface cellwall5 r13j cAR1D        -> cAR1A        0.5
+
+reaction r14  cAR1A        -> 0            0.7
+reaction r14d cAR1D        -> 0            0.7
+
+
+
+
+#mol 100 ACA u u u   
+compartment_mol 50 cAMP inside1
+compartment_mol 50 cAMP inside2
+compartment_mol 50 cAMP inside3
+compartment_mol 50 cAMP inside4
+compartment_mol 50 cAMP inside5
+
+compartment_mol 10 ERK2 inside1
+compartment_mol 10 ERK2 inside2
+compartment_mol 10 ERK2 inside3
+compartment_mol 10 ERK2 inside4
+compartment_mol 10 ERK2 inside5
+#mol 100 cAR1A u u u  
+
+surface_mol 10 ACA(front)   cellwall1 all all
+surface_mol 10 cAR1A(front) cellwall1 all all
+surface_mol 10 ACA(front)   cellwall2 all all
+surface_mol 10 cAR1A(front) cellwall2 all all
+surface_mol 10 ACA(front)   cellwall3 all all
+surface_mol 10 cAR1A(front) cellwall3 all all
+surface_mol 10 ACA(front)   cellwall4 all all
+surface_mol 10 cAR1A(front) cellwall4 all all
+surface_mol 10 ACA(front)   cellwall5 all all
+surface_mol 10 cAR1A(front) cellwall5 all all
+
+end_file

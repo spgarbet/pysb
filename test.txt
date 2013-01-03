@@ -1,0 +1,97 @@
+graphics opengl
+species   ACA  ATP  cAMP  cAR1
+
+difc ACA(all) 1
+difc ATP(all) 1
+difc cAMP(all) 1
+difc cAR1(all) 1
+
+
+color ACA(all) maroon
+color ATP(all) red
+color cAMP(all) orange
+color cAR1(all) yellow
+
+
+display_size all 3
+time_start 0.000000
+time_stop 250.000000
+time_step 0.010000
+
+dim 2
+
+boundaries 0 -50 50
+boundaries 1 -50 50
+frame_thickness 1
+
+
+start_surface Membrane00
+action ATP both reflect
+panel sph -20 20 10 20 20
+thickness 1
+color both grey 0.5
+end_surface
+
+start_compartment Cell00
+surface Membrane00
+point  -20 20
+end_compartment
+
+start_surface Membrane01
+action ATP both reflect
+panel sph 20 20 10 20 20
+thickness 1
+color both grey 0.5
+end_surface
+
+start_compartment Cell01
+surface Membrane01
+point  20 20
+end_compartment
+
+start_surface Membrane02
+action ATP both reflect
+panel sph 20 -20 10 20 20
+thickness 1
+color both grey 0.5
+end_surface
+
+start_compartment Cell02
+surface Membrane02
+point  20 -20
+end_compartment
+
+start_surface Membrane03
+action ATP both reflect
+panel sph -20 -20 10 20 20
+thickness 1
+color both grey 0.5
+end_surface
+
+start_compartment Cell03
+surface Membrane03
+point  -20 -20
+end_compartment
+
+surface_mol 30 ACA(down) Membrane00 all all
+surface_mol 30 cAR1(up) Membrane00 all all
+surface_mol 30 ACA(down) Membrane01 all all
+surface_mol 30 cAR1(up) Membrane01 all all
+surface_mol 30 ACA(down) Membrane02 all all
+surface_mol 30 cAR1(up) Membrane02 all all
+surface_mol 30 ACA(down) Membrane03 all all
+surface_mol 30 cAR1(up) Membrane03 all all
+
+reaction_cmpt Cell00 r100 0 -> ATP 0.02
+reaction_cmpt Cell01 r101 0 -> ATP 0.02
+reaction_cmpt Cell02 r102 0 -> ATP 0.02
+reaction_cmpt Cell03 r103 0 -> ATP 0.02
+reaction r2 ACA(down) + ATP(bsoln) -> ACA(down) + cAMP(bsoln) 2.3
+reaction r3 cAMP(bsoln) -> 0 0.03
+reaction r4 cAR1(up) + cAMP(bsoln) -> cAR1(down) + cAMP(bsoln) 2.3
+reaction r5 cAR1(down) -> cAR1(up) 0.2
+reaction r6 ACA(down) -> ACA(up) 0.2
+reaction r7 ACA(up) + cAR1(down) -> ACA(down) + cAR1(down) 20.0
+
+end_file
+

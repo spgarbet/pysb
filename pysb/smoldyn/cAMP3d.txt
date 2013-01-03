@@ -1,0 +1,87 @@
+# A molecular network underlying spontaneous cAMP oscillation and synchronization in Dictyostelium
+# Shunsuke Sakurai, Seido Nagano, Journal of Theoretical Biology, 307 (2012) 37-41
+# Scheme 1-alpha
+
+graphics opengl
+
+dim 3
+species ACA PKA ERK2 RegA cAMP cAR1A cAR1D
+
+#difc ACA    1
+#difc PKA    1
+#difc ERK2   1
+#difc RegA   1
+#difc cAMP   1
+#difc cAR1A  1
+#difc cAR1D  1
+
+difc all 4
+
+
+color ACA    grey
+color PKA    black
+color ERK2   green
+color RegA   orange
+color cAMP   red
+color cAR1A  blue
+color cAR1D  yellow
+
+display_size all 1
+
+time_start 0
+time_stop 100
+time_step 0.01
+
+boundaries 0 -50 50 r
+boundaries 1 -50 50 r
+boundaries 2 -50 50 r
+frame_thickness 1
+
+
+start_surface cellwall
+action ACA both reflect
+action PKA both reflect
+action ERK2 both reflect
+action RegA both reflect
+action cAMP both transmit
+panel sph 0 0 0 25 10 10
+thickness 1
+color both grey 0.5
+end_surface
+
+start_compartment inside
+surface cellwall
+point 0 0 0
+end_compartment
+
+
+reaction r1   cAR1A         -> ACA + cAR1A  2.3
+reaction r2   PKA + ACA     -> PKA          0.3
+reaction r3   cAMP          -> PKA + cAMP   0.6
+reaction r4   PKA           -> 0            0.6
+reaction r5   cAR1A         -> ERK2 + cAR1A 0.6
+reaction r6   PKA + ERK2    -> PKA          1.1
+reaction_cmpt inside r7   0 -> RegA         0.003 # Note: Had to slow this production waaaay down
+reaction r8   ERK2 + RegA   -> ERK2         2.9
+reaction r9   ACA           -> cAMP + ACA   0.4
+reaction r10  RegA + cAMP   -> RegA         1.1
+# r11, r12 is about boundary transition
+# r13 is the receptor function 
+reaction r13  cAMP         -> cAMP + cAR1A 2.3
+# ??? Hill function, alpha = 20
+reaction_surface cellwall r13d cAR1A        -> cAR1D        2.0
+reaction_surface cellwall r13a cAR1D        -> cAR1A        0.5
+reaction r14  cAR1A        -> 0            0.7
+reaction r14d cAR1D        -> 0            0.7
+
+
+
+
+#mol 100 ACA u u u   
+compartment_mol 100 cAMP inside
+#mol 100 cAR1A u u u  
+
+surface_mol 100 ACA(up) cellwall all all
+surface_mol 100 cAR1A(up) cellwall all all
+
+end_file
