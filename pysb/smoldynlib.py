@@ -1,6 +1,21 @@
 from ctypes import *
 from ctypes.util import find_library
 
+class MolecState(object):
+    (SOLN,FRONT,BACK,UP,DOWN,BSOLN,ALL,NONE,SOME) = range(9)
+
+class PanelFace(object):
+    (FRONT, BACK, NONE, BOTH) = range(4)
+
+class PanelShape(object):
+    (RECTANGLE, TRIANGLE, SPHERE, CYLINDER, HEMISPHERE, DISK, ALL, NONE) = range(8)
+
+class SurfAction(object):
+    (REFLECT, TRANS, ABSORB, JUMP, PORT, MULT, NO, NONE, ABSORB, REVDES, IRREVDES, FLIP) = range(12)
+
+class DrawMode(object):
+    (NO, VERT, EDGE, VE, FACE, VF, EF, VEF, NONE) = range(9)
+
 # Load Smoldyn
 path = find_library("smoldyn_shared")
 smoldyn = cdll.LoadLibrary(path)
@@ -80,20 +95,53 @@ smolAddOutputFile.argtypes = [c_void_p, c_char_p, c_int, c_int]
 
 smolAddCommand = smoldyn.smolAddCommand
 smolAddCommand.restype = c_int
-smolAddCommand.argtypes = [c_void_p, c_char, c_double, c_double, c_double, d_double, c_char_p]
+smolAddCommand.argtypes = [c_void_p, c_char, c_double, c_double, c_double, c_double, c_char_p]
 
 smolAddCommandFromString = smoldyn.smolAddCommandFromString
 smolAddCommandFromString.restype = c_int
 smolAddCommandFromString.argtypes = [c_void_p, c_char_p]
 
+
+# Molecules
+smolAddSpecies = smoldyn.smolAddSpecies
+smolAddSpecies.restype = c_int
+smolAddSpecies.argtypes = [c_void_p, c_char_p, c_char_p]
+#extern "C" int            smolGetSpeciesIndex(simptr sim,const char *species);
+#extern "C" int            smolGetSpeciesIndexNT(simptr sim,const char *species);
+#extern "C" char*          smolGetSpeciesName(simptr sim,int speciesindex,char *species);
+
+smolSetSpeciesMobility = smoldyn.smolSetSpeciesMobility
+smolSetSpeciesMobility.restype = c_int
+smolSetSpeciesMobility.argtypes = [c_void_p, c_char_p, c_int, c_double, c_void_p, c_void_p]
+
+#//?? needs function smolSetSpeciesSurfaceDrift
+#extern "C" enum ErrorCode smolAddMolList(simptr sim,const char *mollist);
+#extern "C" int            smolGetMolListIndex(simptr sim,const char *mollist);
+#extern "C" int            smolGetMolListIndexNT(simptr sim,const char *mollist);
+#extern "C" char*          smolGetMolListName(simptr sim,int mollistindex,char *mollist);
+#extern "C" enum ErrorCode smolSetMolList(simptr sim,const char *species,enum MolecState state,const char *mollist);
+#extern "C" enum ErrorCode smolSetMaxMolecules(simptr sim,int maxmolecules);
+#extern "C" enum ErrorCode smolAddSolutionMolecules(simptr sim,const char *species,int number,double *lowposition,double *highposition);
+#extern "C" enum ErrorCode smolAddCompartmentMolecules(simptr sim,const char *species,int number,const char *compartment);
+
+smolAddSurfaceMolecules = smoldyn.smolAddSurfaceMolecules
+smolAddSurfaceMolecules.restype = c_int
+smolAddSurfaceMolecules.argtypes = [c_void_p, c_char_p, c_int, c_int, c_char_p, c_int, c_char_p, c_void_p]
+
+#extern "C" int            smolGetMoleculeCount(simptr sim,const char *species,enum MolecState state);
+
+smolSetMoleculeStyle = smoldyn.smolSetMoleculeStyle
+smolSetMoleculeStyle.restype = c_int
+smolSetMoleculeStyle.argtypes = [c_void_p, c_char_p, c_int, c_double, c_void_p]
+
 # Surfaces
-smolSetBoundary = smoldyn.smolSetBoundary
-smolSetBoundary.restype = c_int
-smolSetBoundary.argtypes = [c_void_p, c_int, c_int, c_char]
+smolSetBoundaryType = smoldyn.smolSetBoundaryType
+smolSetBoundaryType.restype = c_int
+smolSetBoundaryType.argtypes = [c_void_p, c_int, c_int, c_char]
 
 smolAddSurface = smoldyn.smolAddSurface
 smolAddSurface.restype = c_int
-smolAddSurface.argtypes = [c_void_p, c_char]
+smolAddSurface.argtypes = [c_void_p, c_char_p]
 
 smolGetSurfaceIndex = smoldyn.smolGetSurfaceIndex
 smolGetSurfaceIndex.restype = c_int
@@ -215,9 +263,9 @@ smolSetReactionProducts.argtypes = [c_void_p, c_char_p, c_int, c_double, c_char_
 
 
 # Bit of test code
-smolGetVersion()
-lbound = (c_double * 2)(0.0, 0.0)
-ubound = (c_double * 2)(100.0, 100.0)
-s = smolNewSim(2, pointer(lbound), pointer(ubound))
-smolDisplaySim(s)
-smolFreeSim(s)
+#smolGetVersion()
+#lbound = (c_double * 2)(0.0, 0.0)
+#ubound = (c_double * 2)(100.0, 100.0)
+#s = smolNewSim(2, pointer(lbound), pointer(ubound))
+#smolDisplaySim(s)
+#smolFreeSim(s)
