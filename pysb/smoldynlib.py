@@ -25,6 +25,9 @@ smolGetVersion = smoldyn.smolGetVersion
 smolGetVersion.restype = c_double
 
 # Error Handling
+smolSetDebugMode = smoldyn.smolSetDebugMode
+smolSetDebugMode.restype = None
+smolSetDebugMode.argtypes = [c_int]
 
 # Simulation Structure
 smolNewSim = smoldyn.smolNewSim
@@ -121,8 +124,15 @@ smolSetSpeciesMobility.argtypes = [c_void_p, c_char_p, c_int, c_double, c_void_p
 #extern "C" char*          smolGetMolListName(simptr sim,int mollistindex,char *mollist);
 #extern "C" enum ErrorCode smolSetMolList(simptr sim,const char *species,enum MolecState state,const char *mollist);
 #extern "C" enum ErrorCode smolSetMaxMolecules(simptr sim,int maxmolecules);
+
 #extern "C" enum ErrorCode smolAddSolutionMolecules(simptr sim,const char *species,int number,double *lowposition,double *highposition);
-#extern "C" enum ErrorCode smolAddCompartmentMolecules(simptr sim,const char *species,int number,const char *compartment);
+smolAddSolutionMolecules = smoldyn.smolAddSolutionMolecules
+smolAddSolutionMolecules.restype = c_int
+smolAddSolutionMolecules.argtypes = [c_void_p, c_char_p, c_int, c_void_p, c_void_p]
+
+smolAddCompartmentMolecules = smoldyn.smolAddCompartmentMolecules
+smolAddCompartmentMolecules.restype = c_int
+smolAddCompartmentMolecules.argtypes = [c_void_p, c_char_p, c_int, c_char_p]
 
 smolAddSurfaceMolecules = smoldyn.smolAddSurfaceMolecules
 smolAddSurfaceMolecules.restype = c_int
@@ -232,7 +242,6 @@ smolAddCompartmentLogic.restype = c_int
 smolAddCompartmentLogic.argtypes = [c_void_p, c_char_p, c_int, c_char_p]
 
 # Reactions 
-
 smolAddReaction = smoldyn.smolAddReaction
 smolAddReaction.restype = c_int
 smolAddReaction.argtypes = [c_void_p, c_char_p, c_char_p, c_int, c_char_p, c_int, c_int, c_void_p, c_void_p, c_double]

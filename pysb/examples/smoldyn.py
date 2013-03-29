@@ -2,7 +2,9 @@ from pysb import *
 from pysb.generator import *
 from pysb.geometry import *
 
-from pysb.generator.smoldyn import SmoldynGenerator
+from pysb.smoldynlib import *
+
+from pysb.generator.smoldynlib import *
 
 Model()
 
@@ -37,7 +39,7 @@ cells = [[-20, 20],
 
 # Create the 4 cells
 for idx, loc in enumerate(cells):
-    m=Compartment('Membrane%02d'%idx, Main, geometry=SphericalSurface(10, loc), action=["ATP both reflect"])
+    m=Compartment('Membrane%02d'%idx, Main, geometry=SphericalSurface(10, loc), action=[ ["ATP",PanelFace.BOTH,SurfAction.REFLECT] ])
     c=Compartment('Cell%02d'%idx,        m, geometry=SphericalSpace(  10, loc))
     Initial(ACA(Orient="down")**m, aca_0)
     Initial(cAR1(Y="up")**m, car1_0)
@@ -51,6 +53,8 @@ Rule("r6", ACA(Orient="down") >> ACA(Orient="up"), k6)
 Rule("r7", ACA(Orient="up") +cAR1(Y="down") >> ACA(Orient="down") + cAR1(Y="down"), k7)
 
 
-g = SmoldynGenerator(model)
-g.generate_content()
-print g.get_content()
+g = SmoldynlibGenerator(model)
+g.generate_sim()
+
+#g.generate_content()
+#print g.get_content()

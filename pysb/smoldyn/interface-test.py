@@ -5,7 +5,17 @@ from pysb.smoldynlib import *
 # boundaries 1 -50 50
 lbound = (c_double * 2)(-50.0, -50.0)
 ubound = (c_double * 2)(50.0, 50.0)
-s = smolNewSim(2, pointer(lbound), pointer(ubound))
+s = smolNewSim(2, lbound, ubound)
+
+# 
+# time_start 0.000000
+# time_stop 250.000000
+# time_step 0.010000
+smolSetSimTimes(s, 0.0, 250.0, 0.01)
+
+smolSetPartitions(s, "molperbox", 4)
+smolSetPartitions(s, "boxsize", 12.5)
+
 
 # species   ACA  ATP  cAMP  cAR1
 # difc ACA(all) 1
@@ -36,11 +46,7 @@ smolSetMoleculeStyle(s, "cAMP", MolecState.ALL, display_size, orange)
 yellow = (c_double * 3)(1.0, 1.0, 51.0/255.0)
 smolSetMoleculeStyle(s, "cAR1", MolecState.ALL, display_size, yellow)
 
-# 
-# time_start 0.000000
-# time_stop 250.000000
-# time_step 0.010000
-smolSetSimTimes(s, 0.0, 250.0, 0.01)
+
 
 # frame_thickness 1
 # ?????
@@ -52,11 +58,11 @@ smolSetSimTimes(s, 0.0, 250.0, 0.01)
 #color both grey 0.5
 #end_surface
 smolAddSurface(s, "Membrane00")
-smolSetSurfaceAction(s, "Membrane00", PanelFace.BOTH, "ATP", MolecState.ALL, SurfAction.REFLECT)
+smolSetSurfaceAction(s, "Membrane00", PanelFace.BOTH, "ATP", MolecState.SOLN, SurfAction.REFLECT)
 params = (c_double * 5)(-20.0, 20.0, 10.0, 20.0, 20.0)
 smolAddPanel(s, "Membrane00", PanelShape.SPHERE, "", "", params)
-grey = (c_double * 3)(0.5, 0.5, 0.5)
-smolSetSurfaceStyle(s, "Membrane00", PanelFace.BOTH, DrawMode.NONE, 1, grey, -1, -1, 0.5)
+color = (c_double * 3)(0.5, 0.5, 0.5, 0.5)
+smolSetSurfaceStyle(s, "Membrane00", PanelFace.BOTH, DrawMode.NONE, 1, color, -1, -1, 0.5)
 
 #start_compartment Cell00
 #surface Membrane00
@@ -121,21 +127,27 @@ smolAddSurfaceMolecules(s, "cAR1", MolecState.UP, 30, "Membrane00", PanelShape.A
 #reaction_cmpt Cell00 r100 0 -> ATP 0.02
 # HOW TO DEAL WITH POINTER TO POINTER LISTS OF PRODUCTS!!!!!
 species = (c_char_p * 1)("ATP")
-#states  = pointer(c_int(MolecState.NONE))
-states = c_int(MolecState.NONE)
+states = (c_int * 1)(MolecState.SOLN)
 
-smolAddReaction(s, "r100", "", MolecState.ALL, "", MolecState.ALL, 1,  byref(species), byref(states), 0.02)
+smolAddReaction(s, "r100", "", MolecState.ALL, "", MolecState.ALL, 1,  species, states, 0.02)
 smolSetReactionRegion(s, "r100", "Cell00", "")
 #reaction_cmpt Cell01 r101 0 -> ATP 0.02
 #reaction_cmpt Cell02 r102 0 -> ATP 0.02
 #reaction_cmpt Cell03 r103 0 -> ATP 0.02
 
+
+
 # reaction r2 ACA(down) + ATP(bsoln) -> ACA(down) + cAMP(bsoln) 2.3
 species = (c_char_p * 2)("ACA", "cAMP")
 states = (c_int * 2)(MolecState.DOWN, MolecState.BSOLN)
 
-smolAddReaction(s, "r2", "ACA", MolecState.DOWN, "ATP", MolecState.BSOLN, 2, species, states ,2.3)
+smolAddReaction(s, "r2", "ACA", MolecState.DOWN, "ATP", MolecState.BSOLN, 2, species, states, 2.3)
 
+
+smolUpdateSim(s)
+smolDisplaySim(s)
+smolRunSim(s)
+smolFreeSim(s)
 
 reaction r3 cAMP -> 0 0.03
 reaction r4 cAR1(up) + cAMP(bsoln) -> cAR1(down) + cAMP(bsoln) 2.3
@@ -146,4 +158,5 @@ reaction r7 ACA(up) + cAR1(down) -> ACA(down) + cAR1(down) 20.0
 
 
 smolDisplaySim(s)
+smolRunSim(s)
 smolFreeSim(s)
