@@ -16,6 +16,11 @@ class SurfAction(object):
 class DrawMode(object):
     (NO, VERT, EDGE, VE, FACE, VF, EF, VEF, NONE) = range(9)
 
+class RevParam(object):
+    (NONE,IRREV,CONFSPREAD,BOUNCE,PGEM,PGEMMAX,PGEMMAXW,RATIO,
+     UNBINDRAD,PGEM2,PGEMMAX2,RATIO2,OFFSET,FIXED) = range(14);
+
+
 # Load Smoldyn
 path = find_library("smoldyn_shared")
 smoldyn = cdll.LoadLibrary(path)
@@ -139,6 +144,9 @@ smolAddSurfaceMolecules.restype = c_int
 smolAddSurfaceMolecules.argtypes = [c_void_p, c_char_p, c_int, c_int, c_char_p, c_int, c_char_p, c_void_p]
 
 #extern "C" int            smolGetMoleculeCount(simptr sim,const char *species,enum MolecState state);
+smolGetMoleculeCount = smoldyn.smolGetMoleculeCount
+smolGetMoleculeCount.restype = c_int
+smolGetMoleculeCount.argtypes = [c_void_p, c_char_p, c_int]
 
 smolSetMoleculeStyle = smoldyn.smolSetMoleculeStyle
 smolSetMoleculeStyle.restype = c_int
@@ -266,6 +274,7 @@ smolSetReactionRegion = smoldyn.smolSetReactionRegion
 smolSetReactionRegion.restype = c_int
 smolSetReactionRegion.argtypes = [c_void_p, c_char_p, c_char_p, c_char_p]
 
+#enum ErrorCode smolSetReactionProducts(simptr sim,const char *reaction,enum RevParam method,double parameter,const char *product,double *position);
 smolSetReactionProducts = smoldyn.smolSetReactionProducts
 smolSetReactionProducts.restype = c_int
 smolSetReactionProducts.argtypes = [c_void_p, c_char_p, c_int, c_double, c_char_p, c_void_p]

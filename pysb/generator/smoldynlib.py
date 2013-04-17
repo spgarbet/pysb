@@ -103,14 +103,20 @@ class SmoldynlibGenerator(object):
             if(len(cp.monomer_patterns) > 1): raise Exception("Smoldyn does not support bound monomer_patterns")
             species = cp.monomer_patterns[0].monomer.name
             if(len(cp.monomer_patterns[0].site_conditions) > 1): raise Exception("Only one state supported in Smoldyn")
-            site = cp.monomer_patterns[0].site_conditions.keys()[0]
-            state = self.smoldyn_state(cp.monomer_patterns[0].site_conditions[site])
+            
+            if(len(cp.monomer_patterns[0].site_conditions.keys()) > 0):
+                site = cp.monomer_patterns[0].site_conditions.keys()[0]
+                state = self.smoldyn_state(cp.monomer_patterns[0].site_conditions[site])
+            else:
+                state = MolecState.SOLN
             c = cp.compartment
             if cp.compartment is None:
                 for mp in cp.monomer_patterns:
                     if mp.compartment is not None: c = mp.compartment
                 if c is None: raise Exception("All species must be in a compartment in Smoldyn")
-            if isinstance(c.geometry, SphericalSurface):
+            if(c.parent is None):
+                smolAddSolutionMolecules(self.sim, species, int(quantity), 0, 0) #?
+            elif isinstance(c.geometry, SphericalSurface):
                 smolAddSurfaceMolecules(self.sim, species, state, int(quantity), c.name, PanelShape.ALL, "all", 0)
             else:
                 smolAddCompartmentMolecules(self.sim, species, int(quantity), c.name)
@@ -162,14 +168,18 @@ class SmoldynlibGenerator(object):
                 names[i]  = products['name'][i]
                 states[i] = products['state'][i]
                 if(names[i] != ''): notnull = notnull + 1
-#                print("products name[%d] = '%s', state[%d] = '%s'" % (i, names[i], i, states[i]))
-#            print("reactants name[%d] = '%s', state[%d] = '%s'" % (0, reactants['name'][0], 0, reactants['state'][0]))
-#            print("reactants name[%d] = '%s', state[%d] = '%s'" % (1, reactants['name'][1], 1, reactants['state'][1]))
             smolAddReaction(self.sim, r.name, 
                             reactants['name'][0], reactants['state'][0],
                             reactants['name'][1], reactants['state'][1],
                             notnull, names, states, r.rate_forward.value)
 
+            # I'm confused!!!
+#            if r.is_reversible:
+#               
+#            else:
+#                smolSetReactionProducts(self.sim, r.name, RevParam.IRREV, 0.0, 0, 0)
+
+            # Which is it???
             if r.is_reversible:
                 if(len(products['name']) < 1 or len(products['name']) > 2):
                     raise Exception("Rule %s unsupported number of products" % r.name)
@@ -181,11 +191,15 @@ class SmoldynlibGenerator(object):
                     names[i]  = reactants['name'][i]
                     states[i] = reactants['state'][i]
                     if(names[i] != ''): notnull = notnull + 1
-                smolAddReaction(self.sim, r.name,
+                #import code; code.interact(local=locals())
+                smolAddReaction(self.sim, r.name+"reverse",
                                 products['name'][0], products['state'][0], products['name'][1], products['state'][1],
                                 notnull, names, states,
-                                r.rate_backward.value)
-
+                                r.rate_reverse.value)
+                smolSetReactionProducts(self.sim, r.name+"reverse", RevParam.PGEMMAX, 0.2, (c_char_p)(), 0)
+            else:
+                smolSetReactionProducts(self.sim, r.name, RevParam.IRREV, 0.0, (c_char_p)(), 0)
+                                    
             if r.compartment is not None:
                 if isinstance(r.compartment.geometry, SphericalSurface):
                     smolSetReactionRegion(self.sim, r.name, "", r.compartment.name)
@@ -193,8 +207,6 @@ class SmoldynlibGenerator(object):
                     smolSetReactionRegion(self.sim, r.name, r.compartment.name, "")
     
     def format_reaction_pattern(self, rp):
-        #import code
-        #code.interact(local=locals())
         names  = [self.format_complex_names(cp)  for cp in rp.complex_patterns]
         states = [self.format_complex_states(cp) for cp in rp.complex_patterns]
         while len(names)<2:
