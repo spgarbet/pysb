@@ -36,7 +36,9 @@ at https://github.com/pysb/pysb.git\n""" % rv_filename)
           author='Jeremy Muhlich',
           author_email='jmuhlich@bitflood.org',
           url='http://pysb.org/',
-          packages=['pysb', 'pysb.generator', 'pysb.tools', 'pysb.examples'],
+          packages=['pysb', 'pysb.generator', 'pysb.tools', 'pysb.examples',
+                    'pysb.export', 'pysb.testing'],
+          scripts=['scripts/pysb_export'],
           requires=['numpy', 'scipy', 'sympy'],
           cmdclass = {'test': test},
           keywords=['systems', 'biology', 'model', 'rules'],
@@ -77,7 +79,6 @@ def get_version():
 
     # ensure that we are working in a pysb git repo
     setup_path = os.path.abspath(os.path.dirname(__file__))
-    print setup_path
     if not os.path.exists(os.path.join(setup_path, '.git')):
         raise Exception("setup.py is not in the root of a git repository; "
                         "aborting")

@@ -1,109 +1,108 @@
-Getting Started
-===============
+Installation
+============
 
-Python Knowledge 
----------------- 
+There are two different ways to install and use PySB:
 
-For those unfamiliar with *Python* or programming there are several
-resources available online. We have found the ones below useful to
-learn *Python* in a practical and straightfoward manner.
+1. **Download and run the virtual machine containing the complete PySB
+   installation.** Users wishing to try out PySB, who are unfamiliar with the
+   procedure for installing Python packages or who just want a simpler
+   installation procedure, should choose this option.
 
-Quick Python Overview (10 minutes or so): 
-   * `OpenOpt Python for the impatient <http://openopt.org/PythonIntroduction>`_
-   * `Instant Python <http://hetland.org/writing/instant-python.html>`_
-   
-Python for beginners, experienced users, or if you want a refresher:
-   * `Official Python tutorial <http://docs.python.org/tutorial/>`_
-   * `Python for non-programmers <http://wiki.python.org/moin/BeginnersGuide/NonProgrammers>`_
-   * `Dive into Python <http://www.diveintopython.net/>`_
-   * `Thinking in Python <http://www.mindview.net/Books/TIPython>`_
-   * 
+   *OR*
 
-For experienced users of other languages:
-   * `NumPy for Matlab <http://www.scipy.org/NumPy_for_Matlab_Users/>`_
-      * Also the `Mathesaurus <http://mathesaurus.sourceforge.net/matlab-numpy.html>`_
-      * Matlab commands in Numerical Python `cheatsheet <http://mathesaurus.sourceforge.net/matlab-python-xref.pdf>`_
-   * `Scientific Python <http://www.scipy.org/>`_
+2. **Install the necessary software dependencies natively on your computer.**
+   Users who are comfortable with installing Python packages and compiling
+   source code should choose this option.
 
-Requirements
-------------
+Option 1: The PySB virtual machine
+----------------------------------
 
-The following are what we consider the *necessary* to use PySB as a
-biological simulation tool. The versions listed are the ones that are
-known to work well with the material in this documentation. Later
-versions *should* work and earlier versions *might* work. Advanced
-users may want to replace these requirements as they see fit. 
+For easy installation, we provide a pre-configured virtual machine (VM) running
+the `Ubuntu Linux`_ operating system that comes with all necessary software
+installed.  It also includes other useful software (e.g., `Git`_, `IPython`_,
+`GraphViz`_, `Kappa`_, `OCaml`_), and has been designed to make getting
+up-to-date versions of PySB and other required packages easy. The VM will
+require 2GB of free hard drive space to install, plus an extra 500MB during the
+download and import process.
 
-* Python 2.7: You will need a version of the Python interpreter in your
-  machine. 
-* NumPy 1.7: You may not need NumPy for simple model building but you will
-  want to have it for any sort of numerical manipulation of your
-  model. The work presented here has been carried out using NumPy 1.7
-  or later. 
-* SymPy 0.7: Like NumPy, you may not need SymPy to carry out simple
-  model building and instantiation but if you want to run numerical
-  simulation,s SymPy will be a required tool for symbolic math manipulation.
-* BioNetGen 2.1.8: The Biological Network Generator is a very useful tool
-  for rules-based modeling. It is a very powerful and useful package
-  for modeling and simulation of biological systems and provides a set
-  of useful tools that could be used with PySB. As of now, PySB uses
-  BioNetGen as a tool to generate the reaction connectivity network
-  using its robust engine. If you want to generate biochemical
-  representations of a biological system, you will need
-  BioNetGen. BioNetGen depends on Perl 2, so you will need that as
-  well. 
-* SciPy 0.10: Scientific Python provides a suite of extremely useful
-  tools for scientific computing in the Python environment. For
-  example, SciPy provides the LSODA integrator interface that we use
-  in PySB. 
-* MatPlotLib 1.2 (PyLab): This package provides a very useful
-  interface for generation, manipulation, export, etc of plots in two
-  and three dimensions. If you want to visualize any type of plots you
-  will need MatPlotLib. 
+In addition to the PySB virtual machine file itself, you'll need virtualization
+software to run it, such as Oracle's free and open-source `VirtualBox`_.  The
+instructions given below are for VirtualBox, but other virtualization software
+such as `VMWare Player`_ (free) or `Parallels`_ can also be used. Here's the
+installation procedure:
+
+1. `Download VirtualBox <https://www.virtualbox.org/wiki/Downloads>`_ and
+   install it.
+
+2. `Download the PySB OVA <http://www.pysb.org/#download>`_ (Open Virtualization
+   Appliance) file. The file is approximately 500MB. Double-click the downloaded
+   .ova file to open it in VirtualBox, if your web browser doesn't offer to do
+   so.
+
+3. VirtualBox will now display the Appliance Import Wizard. Click the "Import"
+   button to continue. Note that the newly created VM will occupy about 2GB of
+   hard drive space. Once the import is complete, you may delete the .ova file.
+
+4. In the VirtualBox Manager window, double-click the "PySB demo" entry to
+   launch the VM.
+
+Now you may use the virtual machine to create and work with PySB models. All
+files created in the VM will be saved on a virtual disk image, and you may shut
+down the VM and re-launch it later from the VirtualBox Manager without losing
+your work. If you would like to share files between the VM and your desktop
+system, see the VirtualBox documentation for instructions.
 
 
-Recommended
------------
-* iPython 0.13: Even though iPython is not a *requirement* it is
-  **strongly** recommended. iPython provides a very nice and simple
-  shell interface for the Python interpreter with such niceties as tab
-  completion, object exploration, running and editing from the shell,
-  debugging, and history to name a few. You want this. 
-* KaSim/Kappa : This wonderful rules-based package can be run natively
-  from PySB to take advantage of its stochastic simulation
-  capabilities and great visualization tools. It is a great complement
-  to the modeling tools in BioNetGen.
-* cookbooks 
+Option 2: Installing the dependencies yourself
+----------------------------------------------
 
-The easiest way to use PySB
---------------------------- 
+Required software
+^^^^^^^^^^^^^^^^^
 
-Currently the easiest way to use PySB is through a virtual machine. We
-provide an ``Ubuntu Linux ISO`` image file based on ``Ubuntu 12.04``
-to run *PySB*. With this you can get acquainted, build some simple
-models, and carry out simulations. If you decide you want to use PySB
-on your native computer platform we will be posting instructions for
-this in the near future. 
+These are the minimum requirements needed to simulate a model and plot the
+results. Listed versions are the ones that are known to work well. Later
+versions should work but earlier versions may not. The major exception to this
+guideline is Python itself -- see below.
 
-To run *PySB* from the image you can download the image from `The PySB
-website <http://pysb.org>`_ and burn it onto a bootable DVD or USB
-stick. Alternatively you can download a virtual machine software such
-as `Virtual Box <https://www.virtualbox.org/>`_ (FREE) or `Parallels
-<http://www.parallels.com/>`_ ($). Follow the instructions to setup
-the virtual machine booting from the ``ISO`` file to begin modeling
-with Python programs.
+* `Python`_ 2.7
 
-Instructions for Linux installations
-------------------------------------
+  **PySB requires Python 2.7**! Earlier versions of Python (2.6 and lower) are not
+  compatible, nor are later versions (3.x).
 
-**coming soon**
+* `SciPy`_ 0.9
+* `NumPy`_ 1.6
+* `SymPy`_ 0.7
+* `matplotlib`_ 1.1
+* `BioNetGen`_ 2.2 (requires Perl -- see below)
+* `Perl`_ 5.8
 
-Instructions for OS X installations
------------------------------------
+  Any newer 5.x version is OK too. Mac and Linux users can use the version of
+  Perl included with their operating system. Windows users should get Strawberry
+  Perl from http://strawberryperl.com/.
 
-**coming soon**
+Recommended software
+^^^^^^^^^^^^^^^^^^^^
 
-Instructions for Windows installations
---------------------------------------
+* `IPython`_: An alternate interactive Python shell, much improved over the
+  standard one.
+* `Kappa`_: A rule-based modeling tool that can produce several useful model
+  visualizations or perform an agent-based model simulation. PySB provides
+  direct integration with some of these capabilities. Both the older `Kappa`
+  (simplx/complx) and the newer `KaSim` packages are supported.
 
-**coming soon**
+.. _Ubuntu Linux: http://www.ubuntu.com
+.. _Kappa: http://www.kappalanguage.org
+.. _Git: http://git-scm.com
+.. _IPython: http://ipython.org/
+.. _OCaml: http://caml.inria.fr/ocaml/
+.. _GraphViz: http://www.graphviz.org/
+.. _VirtualBox: https://www.virtualbox.org/
+.. _VMWare Player: http://www.vmware.com/products/player/
+.. _Parallels: http://www.parallels.com/
+.. _Python: http://www.python.org/
+.. _SciPy: http://www.scipy.org/
+.. _NumPy: http://numpy.scipy.org/
+.. _SymPy: http://sympy.org/
+.. _matplotlib: http://matplotlib.org/
+.. _BioNetGen: http://www.bionetgen.org/
+.. _Perl: http://www.perl.org/

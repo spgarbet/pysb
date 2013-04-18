@@ -43,7 +43,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'PySB, modeling with programs'
+project = u'PySB'
 copyright = u'2012, C. F. Lopez, J. L. Muhlich, J. A. Bachman'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -124,7 +124,7 @@ html_theme = 'default'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+#html_static_path = ['_static']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -222,3 +222,27 @@ man_pages = [
 # -- Options for numpydoc ------------------------------------------------------
 
 numpydoc_show_class_members = False
+
+# Mock out some problematic modules
+
+class Mock(object):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        return Mock()
+
+    @classmethod
+    def __getattr__(cls, name):
+        if name in ('__file__', '__path__'):
+            return '/dev/null'
+        elif name[0] == name[0].upper():
+            mockType = type(name, (), {})
+            mockType.__module__ = __name__
+            return mockType
+        else:
+            return Mock()
+
+MOCK_MODULES = ['pygraphviz']
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = Mock()

@@ -2,25 +2,22 @@ import pysb.bng
 import numpy
 from scipy.integrate import ode
 from scipy.weave import inline
+import scipy.weave.build_tools
 import distutils.errors
 import sympy
 import re
 import itertools
-
-
-use_inline = False
-# try to inline a C statement to see if inline is functional
-try:
-    inline('int i;', force=1)
-    use_inline = True
-except distutils.errors.CompileError:
-    pass
 
 # some sane default options for a few well-known integrators
 default_integrator_options = {
     'vode': {
         'method': 'bdf',
         'with_jacobian': True,
+        # Set nsteps as high as possible to give our users flexibility in
+        # choosing their time step. (Let's be safe and assume vode was compiled
+        # with 32-bit ints. What would actually happen if it was and we passed
+        # 2**64-1 though?)
+        'nsteps': 2**31 - 1,
         },
     'cvode': {
         'method': 'bdf',
@@ -72,6 +69,18 @@ class Solver(object):
 
     """
 
+    @staticmethod
+    def _test_inline():
+        """Detect whether scipy.weave.inline is functional."""
+        if not hasattr(Solver, '_use_inline'):
+            Solver._use_inline = False
+            try:
+                inline('int i;', force=1)
+                Solver._use_inline = True
+            except (scipy.weave.build_tools.CompileError,
+                    distutils.errors.CompileError, ImportError):
+                pass
+
     def __init__(self, model, tspan, integrator='vode', **integrator_options):
 
         pysb.bng.generate_equations(model)
@@ -81,16 +90,17 @@ class Solver(object):
         for i, p in enumerate(model.parameters):
             code_eqs = re.sub(r'\b(%s)\b' % p.name, 'p[%d]' % i, code_eqs)
 
+        Solver._test_inline()
         # If we can't use weave.inline to run the C code, compile it as Python code instead for use with
         # exec. Note: C code with array indexing, basic math operations, and pow() just happens to also
         # be valid Python.  If the equations ever have more complex things in them, this might fail.
-        if not use_inline:
+        if not Solver._use_inline:
             code_eqs_py = compile(code_eqs, '<%s odes>' % model.name, 'exec')
 
         def rhs(t, y, p):
-            ydot = numpy.empty_like(y)
+            ydot = self.ydot
             # note that the evaluated code sets ydot as a side effect
-            if use_inline:
+            if Solver._use_inline:
                 inline(code_eqs, ['ydot', 't', 'y', 'p']);
             else:
                 exec code_eqs_py in locals()
@@ -107,6 +117,7 @@ class Solver(object):
         self.model = model
         self.tspan = tspan
         self.y = numpy.ndarray((len(tspan), len(model.species)))
+        self.ydot = numpy.ndarray(len(model.species))
         if len(model.observables):
             self.yobs = numpy.ndarray(len(tspan), zip(model.observables.keys(),
                                                       itertools.repeat(float)))
@@ -167,6 +178,8 @@ class Solver(object):
         while self.integrator.successful() and self.integrator.t < self.tspan[-1]:
             self.y[i] = self.integrator.integrate(self.tspan[i])
             i += 1
+        if self.integrator.t < self.tspan[-1]:
+            self.y[i:, :] = 'nan'
 
         for i, obs in enumerate(self.model.observables):
             self.yobs_view[:, i] = \
