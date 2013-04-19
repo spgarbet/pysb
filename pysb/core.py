@@ -680,19 +680,6 @@ class Parameter(Component):
 
 class Compartment(Component):
 
-<<<<<<< HEAD
-        """
-        Requires name, accepts optional parent, dimension and size. name is a
-        string. parent should be the parent compartment, except for the root
-        compartment which should omit the parent argument. dimension may be 2
-        (for membranes) or 3 (for volumes). size is a parameter which defines
-        the compartment volume (the appropriate units will depend on the units
-        of the reaction rate constants).
-
-        Examples:
-        Compartment('cytosol', dimension=3, size=cyto_vol, parent=ec_membrane)
-        """
-=======
     """
     Model component representing a bounded reaction volume.
 
@@ -729,9 +716,9 @@ class Compartment(Component):
     Examples
     --------
     Compartment('cytosol', dimension=3, size=cyto_vol, parent=ec_membrane)
->>>>>>> master
 
     """
+
     def __init__(self, name, parent=None, dimension=3, size=None, _export=True, geometry=None, action=None):
         Component.__init__(self, name, _export)
         if parent != None and isinstance(parent, Compartment) == False:
