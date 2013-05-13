@@ -185,6 +185,7 @@ class Monomer(Component):
         Allowable states for sites. Keys are sites and values are lists of
         states. Sites which only take part in bond formation and never take on a
         state may be omitted.
+    difc : diffusion coefficient
 
     Attributes
     ----------
@@ -205,7 +206,7 @@ class Monomer(Component):
 
     """
 
-    def __init__(self, name, sites=[], site_states={}, _export=True):
+    def __init__(self, name, sites=[], site_states={}, difc=None, _export=True):
         Component.__init__(self, name, _export)
 
         # ensure sites is some kind of list (presumably of strings) but not a string itself
@@ -232,6 +233,7 @@ class Monomer(Component):
 
         self.sites = list(sites)
         self.site_states = site_states
+        self.difc = difc
 
     def __call__(self, conditions=None, **kwargs):
         """
