@@ -26,11 +26,15 @@ class SmoldynlibGenerator(object):
         smolUpdateSim(self.sim)
         smolDisplaySim(self.sim)
         smolRunSim(self.sim)
+    
+    def free_sim(self):
+        smolFreeSim(self.sim)
+        self.sim = None
 
     def open_sim(self):
         for c in self.model.compartments:
             # Master frame (universe boundaries)
-            # FIXME: For now defaults to reflective, must be square hypersurface
+            # FIXME: For now defaults to periodic, must be square hypersurface
             if c.parent is None:
                 if not isinstance(c.geometry, SquareSpace):
                     raise Exception("SmolDyn specification must have a master SquareSpace to work within")
@@ -39,7 +43,8 @@ class SmoldynlibGenerator(object):
                 for i in range(0, c.dimension):
                     lbound[i] = c.geometry.location[i] - c.geometry.shape.side/2
                     ubound[i] = c.geometry.location[i] + c.geometry.shape.side/2
-                self.sim = smolNewSim(2, lbound, ubound)
+                self.sim = smolNewSim(c.dimension, lbound, ubound)
+                smolSetBoundaryType(self.sim, -1, -1, 'p') # Periodic Boundary
         if self.sim is None:
             raise Exception("No main geometry specified")
 
@@ -92,8 +97,7 @@ class SmoldynlibGenerator(object):
         for m in self.model.monomers:
             #print "smolAddSpecies(<addr>, %s, '')" % m.name
             smolAddSpecies(self.sim, m.name, "")
-# FIXME: How to add diffusion as configurable
-            smolSetSpeciesMobility(self.sim, m.name, MolecState.ALL, 1, 0, 0)
+            smolSetSpeciesMobility(self.sim, m.name, MolecState.ALL, m.difc, 0, 0)
 
     def generate_species(self):
         if not self.model.initial_conditions:
@@ -115,7 +119,7 @@ class SmoldynlibGenerator(object):
                     if mp.compartment is not None: c = mp.compartment
                 if c is None: raise Exception("All species must be in a compartment in Smoldyn")
             if(c.parent is None):
-                smolAddSolutionMolecules(self.sim, species, int(quantity), 0, 0) #?
+                smolAddSolutionMolecules(self.sim, species, int(quantity), 0, 0) 
             elif isinstance(c.geometry, SphericalSurface):
                 smolAddSurfaceMolecules(self.sim, species, state, int(quantity), c.name, PanelShape.ALL, "all", 0)
             else:
@@ -173,13 +177,6 @@ class SmoldynlibGenerator(object):
                             reactants['name'][1], reactants['state'][1],
                             notnull, names, states, r.rate_forward.value)
 
-            # I'm confused!!!
-#            if r.is_reversible:
-#               
-#            else:
-#                smolSetReactionProducts(self.sim, r.name, RevParam.IRREV, 0.0, 0, 0)
-
-            # Which is it???
             if r.is_reversible:
                 if(len(products['name']) < 1 or len(products['name']) > 2):
                     raise Exception("Rule %s unsupported number of products" % r.name)

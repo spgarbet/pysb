@@ -85,9 +85,8 @@ class SmoldynGenerator(object):
         for m in self.model.monomers:
             self.__content += "  %s" % (m.name)
         self.__content += "\n\n"
-# FIXME: How to add diffusion as configurable
         for m in self.model.monomers:
-            self.__content += "difc %s(all) 1\n" % (m.name)
+            self.__content += "difc %s(all) %lf\n" % (m.name, m.difc)
         self.__content += "\n\n"
         for i,m in enumerate(self.model.monomers):
             self.__content += "color %s(all) %s\n" % (m.name, colors[i % len(colors)])
@@ -111,8 +110,11 @@ class SmoldynGenerator(object):
         if isinstance(c.geometry, SphericalSurface):
             ret = 'surface_mol %d %s %s all all' % (quantity, ret, c.name)
         else:
+            #import code
+            #code.interact(local=locals())
+
             if c.parent is None:
-                ret = ('mol %d %s ' % (quantity, ret)) + ' '.join(c.geometry.location)
+                ret = ('mol %d %s ' % (quantity, ret)) + ' '.join(["%s" % el for el in c.geometry.location])
             else:
                 ret = 'compartment_mol %d %s %s' % (quantity, ret, c.name)
         return ret
