@@ -1432,6 +1432,155 @@ def pore_bind(subunit, sp_site1, sp_site2, sc_site, size, cargo, c_site,
 
     return components
 
+
+# Chain assembly
+# =============
+
+def chain_species(subunit, site1, site2, size):
+    """
+    Return a MonomerPattern representing a chained species.
+
+    Parameters
+    ----------
+    subunit : Monomer or MonomerPattern
+        The subunit of which the chain is composed.
+    site1, site2 : string
+        The names of the sites where one copy of `subunit` binds to the next.
+    size : integer
+        The number of subunits in the chain.
+
+    Returns
+    -------
+    A MonomerPattern corresponding to the chain.
+
+    Notes
+    -----
+    Similar to pore_species, but never closes the chain.
+
+    Examples
+    --------
+    Get the ComplexPattern object representing a pore of size 4::
+
+        Model()
+        Monomer('Unit', ['p1', 'p2'])
+        chain_tetramer = chain_species(Unit, 'p1', 'p2', 4)
+
+    Execution::
+
+        >>> Model() # doctest:+ELLIPSIS
+        <Model '<interactive>' (monomers: 0, rules: 0, parameters: 0, compartments: 0) at ...>
+        >>> Monomer('Unit', ['p1', 'p2'])
+        Monomer('Unit', ['p1', 'p2'])
+        >>> chain_species(Unit, 'p1', 'p2', 4)
+        MatchOnce(Unit(p1=None, p2=1) % Unit(p1=1, p2=2) % Unit(p1=2, p2=3) % Unit(p1=3, p2=None))
+
+    """
+
+    _verify_sites(subunit, site1, site2)
+    if size <= 0:
+        raise ValueError("size must be an integer greater than 0")
+    if size == 1:
+        chainlink = subunit({site1: None, site2: None})
+    elif size == 2:
+        chainlink = subunit({site1: None, site2: 1}) % \
+               subunit({site1: 1, site2: None})
+    else:
+        # build up a ComplexPattern, starting with a single subunit
+        chainlink = subunit({site1: None, site2: 1})
+        for i in range(1, size-1):
+            chainlink %= subunit({site1: i, site2: i + 1})
+        chainlink %= subunit({site1: size-1, site2: None})
+        chainlink.match_once = True
+    return chainlink
+
+def assemble_chain_sequential(subunit, site1, site2, max_size, ktable):
+    """
+    Generate rules to assemble a homomeric chain sequentially.
+
+    The chain species are created by sequential addition of `subunit` monomers.
+    The chain structure is defined by the `pore_species` macro.
+
+    Parameters
+    ----------
+    subunit : Monomer or MonomerPattern
+        The subunit of which the chain is composed.
+    site1, site2 : string
+        The names of the sites where one copy of `subunit` binds to the next.
+    max_size : integer
+        The maximum number of subunits in the chain.
+    ktable : list of lists of Parameters or numbers
+        Table of forward and reverse rate constants for the assembly steps. The
+        outer list must be of length `max_size` - 1, and the inner lists must
+        all be of length 2. In the outer list, the first element corresponds to
+        the first assembly step in which two monomeric subunits bind to form a
+        2-subunit complex, and the last element corresponds to the final step in
+        which the `max_size`th subunit is added. Each inner list contains the
+        forward and reverse rate constants (in that order) for the corresponding
+        assembly reaction, and each of these pairs must comprise solely
+        Parameter objects or solely numbers (never one of each). If Parameters
+        are passed, they will be used directly in the generated Rules. If
+        numbers are passed, Parameters will be created with automatically
+        generated names based on `subunit`, `site1`, `site2` and the chain sizes
+        and these parameters will be included at the end of the returned
+        component list.
+
+    Examples
+    --------
+    Assemble a three-membered chain by sequential addition of monomers,
+    with the same forward/reverse rates for monomer-monomer and monomer-dimer
+    interactions::
+
+        Model()
+        Monomer('Unit', ['p1', 'p2'])
+        assemble_chain_sequential(Unit, 'p1', 'p2', 3, [[1e-4, 1e-1]] * 2)
+
+    Execution::
+
+        >>> Model() # doctest:+ELLIPSIS
+        <Model '<interactive>' (monomers: 0, rules: 0, parameters: 0, compartments: 0) at ...>
+        >>> Monomer('Unit', ['p1', 'p2'])
+        Monomer('Unit', ['p1', 'p2'])
+        >>> assemble_chain_sequential(Unit, 'p1', 'p2', 3, [[1e-4, 1e-1]] * 2) # doctest:+NORMALIZE_WHITESPACE
+        ComponentSet([
+         Rule('assemble_chain_sequential_Unit_2',
+              Unit(p1=None, p2=None) + Unit(p1=None, p2=None) <>
+                  Unit(p1=1, p2=None) % Unit(p1=None, p2=1),
+              assemble_chain_sequential_Unit_2_kf,
+              assemble_chain_sequential_Unit_2_kr),
+         Parameter('assemble_chain_sequential_Unit_2_kf', 0.0001),
+         Parameter('assemble_chain_sequential_Unit_2_kr', 0.1),
+         Rule('assemble_chain_sequential_Unit_3',
+              Unit(p1=None, p2=None) + Unit(p1=1, p2=None) % Unit(p1=None, p2=1) <>
+                  MatchOnce(Unit(p1=1, p2=2) % Unit(p1=2, p2=3) % Unit(p1=3, p2=1)),
+              assemble_chain_sequential_Unit_3_kf,
+              assemble_chain_sequential_Unit_3_kr),
+         Parameter('assemble_chain_sequential_Unit_3_kf', 0.0001),
+         Parameter('assemble_chain_sequential_Unit_3_kr', 0.1),
+         ])
+
+    """
+
+    if len(ktable) != max_size - 1:
+        raise ValueError("len(ktable) must be equal to max_size - 1")
+
+    def chain_rule_name(rule_expression, size):
+        react_p = rule_expression.reactant_pattern
+        monomer = react_p.complex_patterns[0].monomer_patterns[0].monomer
+        return '%s_%d' % (monomer.name, size)
+
+    components = ComponentSet()
+    s = chain_species(subunit, site1, site2, 1)
+    for size, klist in zip(range(2, max_size + 1), ktable):
+        chain_prev = chain_species(subunit, site1, site2, size - 1)
+        chain_next = chain_species(subunit, site1, site2, size)
+        name_func = functools.partial(chain_rule_name, size=size)
+        components |= _macro_rule('assemble_chain_sequential',
+                                  s + chain_prev <> chain_next,
+                                  klist, ['kf', 'kr'],
+                                  name_func=name_func)
+
+    return components
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
