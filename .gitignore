@@ -10,3 +10,7 @@ doc/_build
 MANIFEST
 RELEASE-VERSION
 .idea
+*.aux
+*.d
+*.dvi
+*.log
