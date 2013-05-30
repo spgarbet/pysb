@@ -11,7 +11,7 @@ class PanelShape(object):
     (RECTANGLE, TRIANGLE, SPHERE, CYLINDER, HEMISPHERE, DISK, ALL, NONE) = range(8)
 
 class SurfAction(object):
-    (REFLECT, TRANS, ABSORB, JUMP, PORT, MULT, NO, NONE, ABSORB, REVDES, IRREVDES, FLIP) = range(12)
+    (REFLECT, TRANS, ABSORB, JUMP, PORT, MULT, NO, NONE, ADSORB, REVDES, IRREVDES, FLIP) = range(12)
 
 class DrawMode(object):
     (NO, VERT, EDGE, VE, FACE, VF, EF, VEF, NONE) = range(9)
@@ -278,6 +278,38 @@ smolSetReactionRegion.argtypes = [c_void_p, c_char_p, c_char_p, c_char_p]
 smolSetReactionProducts = smoldyn.smolSetReactionProducts
 smolSetReactionProducts.restype = c_int
 smolSetReactionProducts.argtypes = [c_void_p, c_char_p, c_int, c_double, c_char_p, c_void_p]
+
+# Ports
+#enum ErrorCode smolAddPort(simptr sim,const char *port,const char *surface,enum PanelFace face);
+smolAddPort = smoldyn.smolAddPort
+smolAddPort.restype = c_int
+smolAddPort.argtypes = [c_void_p, c_char_p, c_char_p, c_int]
+
+#int            smolGetPortIndex(simptr sim,const char *port);
+smolGetPortIndex = smoldyn.smolGetPortIndex
+smolGetPortIndex.restype = c_int
+smolGetPortIndex.argtypes = [c_void_p, c_char_p]
+
+#int            smolGetPortIndexNT(simptr sim,const char *port);
+smolGetPortIndexNT = smoldyn.smolGetPortIndexNT
+smolGetPortIndexNT.restype = c_int
+smolGetPortIndexNT.argtypes = [c_void_p, c_char_p]
+
+#char*          smolGetPortName(simptr sim,int portindex,char *port);
+smolGetPortName = smoldyn.smolGetPortName
+smolGetPortName.restype = c_char_p
+smolGetPortName.argtypes = [c_void_p, c_int, c_char_p]  # Returns name in last arg, ugh!
+
+#enum ErrorCode smolAddPortMolecules(simptr sim,const char *port,int nmolec,const char *species,double **positions);
+smolAddPortMolecules = smoldyn.smolAddPortMolecules
+smolAddPortMolecules.restypes = c_int
+smolAddPortMolecules.argtypes = [c_void_p, c_char_p, c_int, c_char_p, c_void_p]
+
+#int            smolGetPortMolecules(simptr sim,const char *port,const char *species,enum MolecState state,int remove);
+smolGetPortMolecules = smoldyn.smolGetPortMolecules
+smolGetPortMolecules.restypes = c_int
+smolGetPortMolecules.argtypes = [c_void_p, c_char_p, c_char_p, c_int, c_int]
+#
 
 
 # Bit of test code
