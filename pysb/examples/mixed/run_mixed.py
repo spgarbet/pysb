@@ -19,7 +19,7 @@ for sec in t[1:]:
     y0 = result[-1]
     y = odesolve(ode, [0, 0.005], y0=[y0[0], y0[1], y0[2], y0[3]])
     smolRunSimUntil(g.sim, sec)
-    smolDisplaySim(g.sim)
+    #smolDisplaySim(g.sim)
     extra = smolGetPortMolecules(g.sim, 'toODE', "OP", MolecState.ALL, 1)
     result.append([  y[1][0],
                      y[1][1] + extra,

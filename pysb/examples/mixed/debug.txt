@@ -1,0 +1,38 @@
+cd ~/Projects/pysb/pysb
+
+python
+
+#####
+from pysb.integrate import odesolve
+from pylab import *
+from pysb.smoldynlib import *
+
+from pysb.examples.mixed.smoldyn import model,g as smoldyn,g
+from pysb.examples.mixed.ode     import model   as ode
+
+t = linspace(0, 1*5, 200*5+1)
+
+smolRunSimUntil(g.sim, 0.0)
+
+result = [[100.00, 0.0, 0.0, 0.0,
+           smolGetMoleculeCount(g.sim, "OS", MolecState.SOLN),
+           smolGetMoleculeCount(g.sim, "OE", MolecState.SOLN),
+           smolGetMoleculeCount(g.sim, "OC", MolecState.SOLN),
+           smolGetMoleculeCount(g.sim, "OP", MolecState.SOLN)]]
+#####
+
+gdb
+
+ps aux | grep python
+
+attach 90739
+
+break smolsurface.c:3899
+
+cont
+
+print pnl->srf->port[face]
+print mptr->list
+
+sec = t[1]
+smolRunSimUntil(g.sim, sec)
