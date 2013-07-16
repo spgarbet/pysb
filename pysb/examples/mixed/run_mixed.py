@@ -5,7 +5,12 @@ from pysb.smoldynlib import *
 from pysb.examples.mixed.smoldyn import model,g as smoldyn,g
 from pysb.examples.mixed.ode     import model   as ode
 
+
+
 t = linspace(0, 1*0.25, 200*0.25+1)
+
+# Idea for final interface
+#result = smolOdeSimulation(smoldyn, ode, t)
 
 # Main Loop
 smolRunSimUntil(g.sim, 0.0)
