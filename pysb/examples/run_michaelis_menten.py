@@ -16,9 +16,9 @@ from pysb.generator.smoldyn import *
 # ODE Solution
 
 t = linspace(0, 1*5, 200*5+1)  
-model.parameters['k1'].value  = 0.05
-model.parameters['kb1'].value = 5
-model.parameters['k2'].value  = 1
+#model.parameters['k1'].value  = 0.05
+#model.parameters['kb1'].value = 5
+#model.parameters['k2'].value  = 1  #Commented out by David - these parameters are actually established in the model
 y = odesolve(model, t)
 
 

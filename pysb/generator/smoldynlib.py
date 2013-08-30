@@ -41,8 +41,8 @@ class SmoldynlibGenerator(object):
                 lbound = (c_double * (c.dimension+1))()
                 ubound = (c_double * (c.dimension+1))()
                 for i in range(0, c.dimension):
-                    lbound[i] = c.geometry.location[i] - c.geometry.shape.side/2
-                    ubound[i] = c.geometry.location[i] + c.geometry.shape.side/2
+                    lbound[i] = c.geometry.location[i] - c.geometry.shape.side/2.
+                    ubound[i] = c.geometry.location[i] + c.geometry.shape.side/2.
                 self.sim = smolNewSim(c.dimension, lbound, ubound)
                 smolSetBoundaryType(self.sim, -1, -1, 'p') # Periodic Boundary
         if self.sim is None:
@@ -96,7 +96,10 @@ class SmoldynlibGenerator(object):
     def generate_molecule_types(self):
         for m in self.model.monomers:
             #print "smolAddSpecies(<addr>, %s, '')" % m.name
-            smolAddSpecies(self.sim, m.name, "")
+            smolAddMolList(self.sim, m.name)
+            smolAddSpecies(self.sim, m.name, m.name)
+            if m.difc == None:
+                raise Exception("No diffusion constant defined for Monomer %s" % m.name)
             smolSetSpeciesMobility(self.sim, m.name, MolecState.ALL, m.difc, 0, 0)
 
     def generate_species(self):

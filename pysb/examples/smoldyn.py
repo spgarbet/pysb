@@ -25,10 +25,10 @@ Parameter('k5',  0.20)
 Parameter('k6',  0.20)
 Parameter('k7', 20.00)
 
-Monomer('ACA', {'Orient':['up', 'down']})  # Up, Down state (Down is active)
-Monomer('ATP')
-Monomer('cAMP')
-Monomer('cAR1',{ 'Y': ['up','down']}) 
+Monomer('ACA', {'Orient':['up', 'down']}, difc=1)  # Up, Down state (Down is active)
+Monomer('ATP', difc=1)
+Monomer('cAMP', difc=1)
+Monomer('cAR1',{ 'Y': ['up','down']}, difc=1) 
 
 m=Compartment('Main',      None,     geometry=SquareSpace(100, [0, 0]))
 
@@ -55,6 +55,7 @@ Rule("r7", ACA(Orient="up") +cAR1(Y="down") >> ACA(Orient="down") + cAR1(Y="down
 
 g = SmoldynlibGenerator(model)
 g.generate_sim()
-
+g.run_sim()
+g.free_sim()
 #g.generate_content()
 #print g.get_content()

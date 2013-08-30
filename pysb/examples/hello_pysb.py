@@ -27,12 +27,13 @@ Initial(R(s=None), R_0)
 Rule('L_binds_R', L(s=None) + R(s=None) <> L(s=1) % R(s=1), kf, kr)
 
 # Observe the complex
-Observable('LR', L(s=1) % R(s=1))
+#Observable('LR', L(s=1) % R(s=1))
+Observable('LR', L())
 
 if __name__ == '__main__':
     print __doc__
     # Simulate the model through 40 seconds
-    time = linspace(0, 40, 100)
+    time = linspace(0, 40, 10)
     print "Simulating..."
     x = odesolve(model, time)
     # Plot the trajectory of LR

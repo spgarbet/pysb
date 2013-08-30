@@ -53,10 +53,15 @@ g = SmoldynlibGenerator(model)
 g.generate_sim()
 
 # This 
-err = smolAddPort(g.sim, 'toODE', 'Membrane', PanelFace.FRONT)
+err = smolAddPort(g.sim, 'toODEfront', 'Membrane', PanelFace.FRONT)
 
 if not err == 0: 
-    raise Exception("ERROR adding port to smoldyn simulation")
+    raise Exception("ERROR adding front port to smoldyn simulation")
+
+err = smolAddPort(g.sim, 'toODEback', 'Membrane', PanelFace.BACK)
+
+if not err == 0:
+    raise Excception("ERROR adding back port to smoldyn simulation")
 
 #g.generate_content()
 #print g.get_content()

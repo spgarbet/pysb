@@ -24,3 +24,8 @@ Initial(IE(), IEinit)   # Get from Smoldyn Port
 
 Rule("ir1", IS() + IE() <> IC(), ik1, ikb1)
 Rule("ir2", IC() >> IP() + IE(), ik2)
+
+Observable('ISobs',IS())
+Observable('IEobs',IE())
+Observable('ICobs',IC())
+Observable('IPobs',IP())

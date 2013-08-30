@@ -20,10 +20,9 @@ class RevParam(object):
     (NONE,IRREV,CONFSPREAD,BOUNCE,PGEM,PGEMMAX,PGEMMAXW,RATIO,
      UNBINDRAD,PGEM2,PGEMMAX2,RATIO2,OFFSET,FIXED) = range(14);
 
-
 # Load Smoldyn
 path = find_library("smoldyn_shared")
-smoldyn = cdll.LoadLibrary(path)
+smoldyn = cdll.LoadLibrary(path) # 10 103 15 177
 
 # Define Get Version
 smolGetVersion = smoldyn.smolGetVersion
@@ -143,6 +142,10 @@ smolAddSurfaceMolecules = smoldyn.smolAddSurfaceMolecules
 smolAddSurfaceMolecules.restype = c_int
 smolAddSurfaceMolecules.argtypes = [c_void_p, c_char_p, c_int, c_int, c_char_p, c_int, c_char_p, c_void_p]
 
+smolAddMolList = smoldyn.smolAddMolList
+smolAddMolList.restype = c_int
+smolAddMolList.argtypes = [c_void_p, c_char_p]
+
 #extern "C" int            smolGetMoleculeCount(simptr sim,const char *species,enum MolecState state);
 smolGetMoleculeCount = smoldyn.smolGetMoleculeCount
 smolGetMoleculeCount.restype = c_int
@@ -151,6 +154,18 @@ smolGetMoleculeCount.argtypes = [c_void_p, c_char_p, c_int]
 smolSetMoleculeStyle = smoldyn.smolSetMoleculeStyle
 smolSetMoleculeStyle.restype = c_int
 smolSetMoleculeStyle.argtypes = [c_void_p, c_char_p, c_int, c_double, c_void_p]
+
+smolRemoveMolecules = smoldyn.smolRemoveMolecules
+smolRemoveMolecules.restype = c_int
+smolRemoveMolecules.argtypes = [c_void_p, c_char_p, c_int, c_int]
+
+smolGetSpeciesIndexNT = smoldyn.smolGetSpeciesIndexNT
+smolGetSpeciesIndexNT.restype = c_int
+smolGetSpeciesIndexNT.argtypes = [c_void_p, c_char_p]
+
+smolGetSpeciesName = smoldyn.smolGetSpeciesName
+smolGetSpeciesName.restype = c_char_p
+smolGetSpeciesName.argtypes = [c_void_p, c_int, c_char_p]
 
 # Surfaces
 smolSetBoundaryType = smoldyn.smolSetBoundaryType
