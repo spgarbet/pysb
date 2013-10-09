@@ -8,6 +8,7 @@ Parameter('IEinit',  0.0001) # Had to put some in or it's eliminated in the odes
 Parameter('ik1',  0.05) 
 Parameter('ikb1', 5.0)
 Parameter('ik2',  1.0)
+Parameter('goo',2.3)
 
 Monomer('IS')
 Monomer('IE') # This will come from Smoldyn

@@ -41,8 +41,8 @@ class SmoldynlibGenerator(object):
                 lbound = (c_double * (c.dimension+1))()
                 ubound = (c_double * (c.dimension+1))()
                 for i in range(0, c.dimension):
-                    lbound[i] = c.geometry.location[i] - c.geometry.shape.side/2.
-                    ubound[i] = c.geometry.location[i] + c.geometry.shape.side/2.
+                    lbound[i] = c.geometry.location[i] - c.geometry.shape.side/2.0
+                    ubound[i] = c.geometry.location[i] + c.geometry.shape.side/2.0
                 self.sim = smolNewSim(c.dimension, lbound, ubound)
                 smolSetBoundaryType(self.sim, -1, -1, 'p') # Periodic Boundary
         if self.sim is None:
@@ -92,25 +92,22 @@ class SmoldynlibGenerator(object):
                 smolAddCompartmentPoint(self.sim, c.name, point)
             else:
                 raise Exception(("Unimplemented Geometry for Compartment %s") % (c.name))
-
+            
     def generate_molecule_types(self):
-        for m in self.model.monomers:
-            #print "smolAddSpecies(<addr>, %s, '')" % m.name
-            smolAddMolList(self.sim, m.name)
-            smolAddSpecies(self.sim, m.name, m.name)
-            if m.difc == None:
-                raise Exception("No diffusion constant defined for Monomer %s" % m.name)
-            smolSetSpeciesMobility(self.sim, m.name, MolecState.ALL, m.difc, 0, 0)
+        difc=100
+        for species in self.model.species:
+            species_name = self.format_species_name(species)
+            smolAddMolList(self.sim, species_name)
+            smolAddSpecies(self.sim, species_name, species_name)
+            smolSetSpeciesMobility(self.sim, species_name, MolecState.ALL, difc, 0, 0)
+        
 
     def generate_species(self):
         if not self.model.initial_conditions:
             raise Exception("Smoldyn generator requires initial conditions.")
         for cp, param in self.model.initial_conditions:
             quantity = param.value
-            if(len(cp.monomer_patterns) > 1): raise Exception("Smoldyn does not support bound monomer_patterns")
-            species = cp.monomer_patterns[0].monomer.name
-            if(len(cp.monomer_patterns[0].site_conditions) > 1): raise Exception("Only one state supported in Smoldyn")
-            
+            species = self.format_species_name(cp)
             if(len(cp.monomer_patterns[0].site_conditions.keys()) > 0):
                 site = cp.monomer_patterns[0].site_conditions.keys()[0]
                 state = self.smoldyn_state(cp.monomer_patterns[0].site_conditions[site])
@@ -124,11 +121,12 @@ class SmoldynlibGenerator(object):
             if(c.parent is None):
                 smolAddSolutionMolecules(self.sim, species, int(quantity), 0, 0) 
             elif isinstance(c.geometry, SphericalSurface):
-                smolAddSurfaceMolecules(self.sim, species, state, int(quantity), c.name, PanelShape.ALL, "all", 0)
+                smolAddSurfaceMolecules(self.sim, species, MolecState.SOLN, int(quantity), c.name, PanelShape.ALL, "all", 0)
             else:
                 smolAddCompartmentMolecules(self.sim, species, int(quantity), c.name)
 
     def smoldyn_state(self, state):
+        return MolecState.SOLN
         if type(state) == str:
             if state.lower() == "soln":
                 state_code = MolecState.SOLN
@@ -155,6 +153,7 @@ class SmoldynlibGenerator(object):
         else:
             raise Exception("Smoldyn generator has encountered an unknown element in a species pattern site condition.")
         return state_code
+
 
     def generate_reaction_rules(self):
 
@@ -191,7 +190,6 @@ class SmoldynlibGenerator(object):
                     names[i]  = reactants['name'][i]
                     states[i] = reactants['state'][i]
                     if(names[i] != ''): notnull = notnull + 1
-                #import code; code.interact(local=locals())
                 smolAddReaction(self.sim, r.name+"reverse",
                                 products['name'][0], products['state'][0], products['name'][1], products['state'][1],
                                 notnull, names, states,
@@ -205,29 +203,28 @@ class SmoldynlibGenerator(object):
                     smolSetReactionRegion(self.sim, r.name, "", r.compartment.name)
                 else:
                     smolSetReactionRegion(self.sim, r.name, r.compartment.name, "")
-    
+
     def format_reaction_pattern(self, rp):
-        names  = [self.format_complex_names(cp)  for cp in rp.complex_patterns]
+        names  = [self.format_species_name(cp)  for cp in rp.complex_patterns]
         states = [self.format_complex_states(cp) for cp in rp.complex_patterns]
         while len(names)<2:
             names.append("")
             states.append(MolecState.ALL)
         return {'name':names, 'state':states}
 
-    def format_complex_names(self, cp):
-        if(len(cp.monomer_patterns) > 1):
-            raise Exception("Complex Monomer patterns not supported in SmolDyn")
-        return ("" if cp.monomer_patterns[0].monomer.name == None else cp.monomer_patterns[0].monomer.name)
-
     def format_complex_states(self, cp):
         monomer = cp.monomer_patterns[0]
-        if(len(monomer.site_conditions) > 1):
-            raise Exception("Complex Monomer patterns not supported in SmolDyn")
-        if(len(monomer.site_conditions) < 1):
-            if(monomer.monomer.name == None or monomer.monomer.name == ''):
-                return MolecState.ALL
-            else:
-                return MolecState.SOLN
+        if(monomer.monomer.name == None or monomer.monomer.name == ''):
+            return MolecState.ALL
         else:
-            site = monomer.site_conditions.keys()[0]
-            return self.smoldyn_state(monomer.site_conditions[site])
+            return MolecState.SOLN
+        
+    def format_species_name(self, cp):
+        species_list = [repr(species) for species in cp.monomer_patterns]
+        species_list.sort()
+        species_name = species_list[0]
+        for species in species_list[1:]:
+            species_name += ' %% %s' %(species)
+        return species_name
+        
+    
